@@ -1,0 +1,41 @@
+[core]
+  editor = hx
+  autocrlf = false
+
+[color]
+  ui = auto
+
+[color "branch"]
+  current = yellow reverse
+  local = yellow
+  remote = green
+
+[color "diff"]
+    meta = yellow
+    frag = magenta
+    old = red
+    new = green
+
+[color "status"]
+    added = yellow
+    changed = green
+    untracked = cyan
+
+[alias]
+  co = checkout
+  cp = cherry-pick
+  st = status
+  lol = log --graph --decorate --pretty=oneline --abbrev-commit
+  lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
+  dt = difftool
+  tags = for-each-ref --sort=taggerdate --format '%(refname) %(taggerdate)' refs/tags
+  sub-init = submodule update --init --recursive
+
+[gpg]
+  program = gpg
+
+[commit]
+  gpgsign = true
+
+[init]
+  defaultBranch = main

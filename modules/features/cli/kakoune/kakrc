@@ -1,0 +1,10 @@
+colorscheme base16-custom
+
+## highlighting
+# display line numbers
+add-highlighter global/ number-lines -hlcursor -separator "  " -cursor-separator " |"
+# show matching brackets
+add-highlighter global/ show-matching
+
+# ensure kakboard is enabled
+hook global WinCreate .* %{ kakboard-enable }

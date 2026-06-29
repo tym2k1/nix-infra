@@ -3,6 +3,13 @@
     environment.systemPackages = [
       self.packages.${pkgs.stdenv.hostPlatform.system}.myGit
     ];
+
+    programs.gnupg.agent = {
+        pinentryPackage = pkgs.pinentry-curses;
+        enable = true;
+        enableSSHSupport = true;
+    };
+
   };
 
   perSystem = { pkgs, ... }: let

@@ -10,7 +10,6 @@ perSystem = { pkgs, self', ... }: let
     set -gx EDITOR hx
     set -U fish_greeting
     export SHELL=$(command -v fish)
-    alias nix-shell='nix-shell --run fish'
     alias e=$EDITOR
 
     function lf --wraps="lf" --description="lf - Terminal file manager (changing directory on exit)"

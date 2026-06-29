@@ -1,22 +1,24 @@
 { self, inputs, ... }: {
   flake.nixosModules.cli-tools = { pkgs, lib, ... }: {
-    # imports = with self.nixosModules; [
-    #   nix-index
-    #   lf
-    # ];
-
     environment.systemPackages =
       [ self.packages.${pkgs.stdenv.hostPlatform.system}.myCli ];
   };
-
-  perSystem = { pkgs, self', ... }: {
-    packages.myCli = pkgs.writeShellApplication {
+  perSystem = { pkgs, self', ... }:
+    let
+      myPkgs = pkgs.extend (final: prev: {
+        sage = prev.sage.override {
+          requireSageTests = false;
+        };
+      });
+in {
+    packages.myCli = myPkgs.writeShellApplication {
       name = "my-cli";
 
-      runtimeInputs = with pkgs; [
+      runtimeInputs = with myPkgs; [
         self'.packages.myLf
         self'.packages.myFish
         self'.packages.myGit
+        self'.packages.myHelix
         nix-index
         zellij
         dust
@@ -31,7 +33,7 @@
         ripgrep-all
         fd
         fzf
-        helix
+        sage
       ];
 
       text = ''exec ${self'.packages.myFish}/bin/fish -i'';

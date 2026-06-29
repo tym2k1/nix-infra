@@ -1,0 +1,15 @@
+theme = "base16_transparent"
+
+[editor]
+clipboard-provider = "termcode"
+mouse = false
+trim-final-newlines = true
+trim-trailing-whitespace = true
+
+[editor.cursor-shape]
+insert = "bar"
+normal = "block"
+select = "underline"
+
+[editor.file-picker]
+hidden = false

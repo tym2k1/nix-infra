@@ -17,15 +17,17 @@
       steam
       lix
       audio
+      desktop-utils
     ];
 
     system.stateVersion = "25.11";
 
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
-    # TODO Maybe to be moved to a feature
     environment.systemPackages = with pkgs; [
-        openvpn
+        openvpn # TODO Maybe to be moved to a feature
+        vim
+        git
     ];
 
     # Bootloader.

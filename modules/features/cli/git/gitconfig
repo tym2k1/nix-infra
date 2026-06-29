@@ -31,11 +31,5 @@
   tags = for-each-ref --sort=taggerdate --format '%(refname) %(taggerdate)' refs/tags
   sub-init = submodule update --init --recursive
 
-[gpg]
-  program = gpg
-
-[commit]
-  gpgsign = true
-
 [init]
   defaultBranch = main

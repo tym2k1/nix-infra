@@ -18,6 +18,32 @@ perSystem = { pkgs, self', ... }: let
         cd "$(command ${self'.packages.myLf}/bin/lf -print-last-dir $argv)"
     end
 
+    # '!!' binding
+    function bind_bang
+        switch (commandline -t)[-1]
+            case "!"
+                commandline -t -- $history[1]
+                commandline -f repaint
+            case "*"
+                commandline -i !
+        end
+    end
+
+    # '!$' binding
+    function bind_dollar
+        switch (commandline -t)[-1]
+            case "!"
+                commandline -f backward-delete-char history-token-search-backward
+            case "*"
+                commandline -i '$'
+        end
+    end
+
+    function fish_user_key_bindings
+        bind ! bind_bang
+        bind '$' bind_dollar
+    end
+
     # In case anyone does the cursed uninmaginable of setting locale to smth else than english
     set -gx LANG en_US.UTF-8
     set -gx LC_MESSAGES en_US.UTF-8

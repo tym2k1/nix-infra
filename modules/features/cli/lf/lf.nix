@@ -38,8 +38,8 @@
         map yn yank-name
         map yp yank-path
         map yy copy
-        cmd yank-name &${pkgs.wl-clipboard}/bin/wl-copy "$(echo $fx)"
-        cmd yank-path &${pkgs.wl-clipboard}/bin/wl-copy "$(echo $fx | while read -r line; do basename "$line"; done)"
+        cmd yank-path &printf '\e]52;c;%s\a' "$(printf '%s' "$fx" | base64 | tr -d '\n')" > /dev/tty
+        cmd yank-name &printf '\e]52;c;%s\a' "$(printf '%s\n' "$fx" | while read -r line; do basename "$line"; done | base64 | tr -d '\n')" > /dev/tty
 
         map Q quit
         map q quit-and-cd

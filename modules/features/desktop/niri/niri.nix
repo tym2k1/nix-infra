@@ -53,6 +53,7 @@
         Mod+S { spawn-sh "${lib.getExe self'.packages.myNoctalia} ipc call launcher toggle"; }
         Mod+L { spawn-sh "${lib.getExe self'.packages.myNoctalia} ipc call lockScreen lock"; }
         Mod+V { spawn-sh "${lib.getExe self'.packages.myNoctalia} ipc call launcher clipboard"; }
+        Mod+M repeat=false { spawn-sh "${pkgs.wl-mirror}/bin/wl-mirror $(niri msg --json focused-output | ${pkgs.jq}/bin/jq -r .name)"; }
         ${builtins.readFile ./binds.kdl}
         }
         ${builtins.readFile ./niri-config.kdl}

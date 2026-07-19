@@ -49,7 +49,7 @@
         xwayland-satellite { path "${lib.getExe pkgs.xwayland-satellite}"; }
 
         binds {
-        Mod+Return { spawn "${lib.getExe pkgs.wezterm}"; }
+        Mod+Return { spawn "${lib.getExe self'.packages.myWezterm}"; }
         Mod+S { spawn-sh "${lib.getExe self'.packages.myNoctalia} ipc call launcher toggle"; }
         Mod+L { spawn-sh "${lib.getExe self'.packages.myNoctalia} ipc call lockScreen lock"; }
         Mod+V { spawn-sh "${lib.getExe self'.packages.myNoctalia} ipc call launcher clipboard"; }

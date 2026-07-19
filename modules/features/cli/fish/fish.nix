@@ -6,6 +6,14 @@
   };
 
 perSystem = { pkgs, self', ... }: let
+    zellijFishCompletion = pkgs.runCommand "zellij-fish-completion" {
+    nativeBuildInputs = [ self'.packages.myZellij ];
+  } ''
+    mkdir -p $out
+    ${self'.packages.myZellij}/bin/zellij setup --generate-completion fish \
+      > $out/completions.fish
+  '';
+
   fishConfig = pkgs.writeText "config.fish" ''
     set -gx EDITOR hx
     set -U fish_greeting
@@ -48,6 +56,8 @@ perSystem = { pkgs, self', ... }: let
     set -gx LANG en_US.UTF-8
     set -gx LC_MESSAGES en_US.UTF-8
     set -e LC_ALL                 # make sure nothing overrides these
+
+    source ${zellijFishCompletion}/completions.fish
   '';
 in {
   packages.myFish = pkgs.symlinkJoin {

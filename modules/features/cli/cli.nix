@@ -19,8 +19,8 @@ in {
         self'.packages.myFish
         self'.packages.myGit
         self'.packages.myHelix
+        self'.packages.myZellij
         nix-index
-        zellij
         dust
         btop
         dragon-drop

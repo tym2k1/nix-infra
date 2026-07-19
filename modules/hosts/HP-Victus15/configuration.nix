@@ -85,6 +85,12 @@
           keymap > $out
     '';
 
+    # Enable bluetooth
+    hardware.bluetooth = {
+      enable = true;
+      powerOnBoot = true;
+    };
+
     # Enable CUPS to print documents.
     services.printing.enable = true;
 

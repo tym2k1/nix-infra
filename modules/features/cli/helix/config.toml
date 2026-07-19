@@ -6,6 +6,9 @@ mouse = false
 trim-final-newlines = true
 trim-trailing-whitespace = true
 
+[editor.indent-guides]
+render = true
+
 [editor.cursor-shape]
 insert = "bar"
 normal = "block"

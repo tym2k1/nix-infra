@@ -17,6 +17,8 @@ in {
       runtimeInputs = with myPkgs; [
         self'.packages.myLf
         self'.packages.myFish
+        self'.packages.myBash
+        self'.packages.myStarship
         self'.packages.myGit
         self'.packages.myHelix
         self'.packages.myZellij

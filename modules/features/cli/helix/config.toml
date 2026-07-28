@@ -2,6 +2,7 @@ theme = "base16_transparent"
 
 [editor]
 clipboard-provider = "termcode"
+default-yank-register = "+"
 mouse = false
 trim-final-newlines = true
 trim-trailing-whitespace = true

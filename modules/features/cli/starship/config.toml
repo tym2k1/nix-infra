@@ -1,0 +1,95 @@
+format = """
+[](green)\
+$os\
+[ ](bg:green fg:black)\
+$username\
+$hostname\
+$shell\
+$shlvl\
+[ ](green)\
+$directory\
+$nix_shell\
+$git_branch\
+$git_state\
+$git_status\
+$cmd_duration\
+$line_break\
+$python\
+$character"""
+
+[os]
+disabled = false
+style = "bg:green fg:black"
+
+[os.symbols]
+NixOS = "󱄅"
+Windows = "󰍲"
+Ubuntu = "󰕈"
+SUSE = ""
+Mint = "󰣭"
+Macos = "󰀵"
+Manjaro = ""
+Linux = "󰌽"
+Gentoo = "󰣨"
+Fedora = "󰣛"
+Alpine = ""
+Android = ""
+Arch = "󰣇"
+Artix = ""
+EndeavourOS = ""
+CentOS = ""
+Debian = "󰣚"
+Redhat = "󱄛"
+RedHatEnterprise = ""
+Pop = ""
+
+[shlvl]
+disabled = false
+symbol = '\$'
+style = "bg:green fg:black"
+format = '[\($shlvl\)]($style)'
+
+[shell]
+disabled = false
+style = "bg:green fg:black"
+format = '[ $indicator]($style)'
+
+[directory]
+style = "blue"
+
+[character]
+success_symbol = "[❯](green)"
+error_symbol = "[❯](red)"
+
+[git_branch]
+format = "[$branch]($style)"
+style = "bright-black"
+
+[git_status]
+format = "[[(*$conflicted$untracked$modified$staged$renamed$deleted)](218) ($ahead_behind$stashed)]($style)"
+style = "cyan"
+conflicted = "​"
+untracked = "​"
+modified = "​"
+staged = "​"
+renamed = "​"
+deleted = "​"
+stashed = "≡"
+
+[git_state]
+format = '\([$state( $progress_current/$progress_total)]($style)\) '
+style = "bright-black"
+
+[nix_shell]
+format = '[$symbol(fg:white) $state( \($name\))]($style) '
+symbol = "󱄅"
+
+[cmd_duration]
+format = "[$duration]($style) "
+style = "yellow"
+
+[python]
+format = "[$virtualenv]($style) "
+style = "bright-black"
+detect_extensions = []
+detect_files = []

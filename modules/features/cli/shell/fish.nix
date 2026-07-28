@@ -1,5 +1,5 @@
 { self, inputs, ... }: {
-  flake.nixosModules.lf = { pkgs, ... }: {
+  flake.nixosModules.fish = { pkgs, ... }: {
     environment.systemPackages = [
       self.packages.${pkgs.stdenv.hostPlatform.system}.myFish
     ];
@@ -7,7 +7,9 @@
 
 perSystem = { pkgs, self', ... }: let
     zellijFishCompletion = pkgs.runCommand "zellij-fish-completion" {
-    nativeBuildInputs = [ self'.packages.myZellij ];
+    nativeBuildInputs = [
+       self'.packages.myZellij
+     ];
   } ''
     mkdir -p $out
     ${self'.packages.myZellij}/bin/zellij setup --generate-completion fish \
@@ -58,6 +60,8 @@ perSystem = { pkgs, self', ... }: let
     set -e LC_ALL                 # make sure nothing overrides these
 
     source ${zellijFishCompletion}/completions.fish
+
+    ${self'.packages.myStarship}/bin/starship init fish | source
   '';
 in {
   packages.myFish = pkgs.symlinkJoin {

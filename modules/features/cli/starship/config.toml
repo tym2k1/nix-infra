@@ -1,12 +1,12 @@
 format = """
-[](green)\
+[](color_0)\
 $os\
-[ ](bg:green fg:black)\
+[ ](bg:color_1 fg:color_0)\
 $username\
 $hostname\
 $shell\
 $shlvl\
-[ ](green)\
+[ ](fg:color_1)\
 $directory\
 $nix_shell\
 $git_branch\
@@ -14,12 +14,33 @@ $git_state\
 $git_status\
 $cmd_duration\
 $line_break\
-$python\
 $character"""
+
+palette = 'base16'
+
+[palettes.base16]
+color_0 =  'red'
+color_1 =  'yellow'
+color_2 =  'green'
+color_3 =  'cyan'
+color_4 =  'blue'
+color_5 =  'purple'
+color_fg = 'bright-white'
+# color_7 = 'bright-black'
+
+[username]
+style_user = "bg:color_1 fg:color_fg"
+style_root = "bg:color_1 fg:color_fg"
+format = '[$user]($style)'
+
+[hostname]
+style = "bg:color_1 fg:color_fg"
+ssh_symbol = "@"
+format = '[$ssh_symbol$hostname ]($style)'
 
 [os]
 disabled = false
-style = "bg:green fg:black"
+style = "bg:color_0 fg:color_fg"
 
 [os.symbols]
 NixOS = "󱄅"
@@ -45,14 +66,13 @@ Pop = ""
 
 [shlvl]
 disabled = false
-symbol = '\$'
-style = "bg:green fg:black"
+style = "bg:color_1 fg:color_fg"
 format = '[\($shlvl\)]($style)'
 
 [shell]
 disabled = false
-style = "bg:green fg:black"
-format = '[ $indicator]($style)'
+style = "bg:color_1 fg:color_fg"
+format = '[$indicator]($style)'
 
 [directory]
 style = "blue"

@@ -1,46 +1,53 @@
 format = """
 [](color_0)\
 $os\
-[ ](bg:color_1 fg:color_0)\
+[▓▒░](bg:color_1 fg:color_0)\
 $username\
 $hostname\
 $shell\
 $shlvl\
-[ ](fg:color_1)\
+[▓▒░](bg:color_2 fg:color_1)\
 $directory\
-$nix_shell\
+[▓▒░](bg:color_3 fg:color_2)\
 $git_branch\
 $git_state\
 $git_status\
+[▓▒░](bg:color_4 fg:color_3)\
+$python\
+$nix_shell\
+[▓▒░](bg:color_5 fg:color_4)\
 $cmd_duration\
+[](fg:color_5)\
+$battery\
 $line_break\
 $character"""
 
-palette = 'base16'
+palette = "base16"
 
 [palettes.base16]
-color_0 =  'red'
-color_1 =  'yellow'
-color_2 =  'green'
-color_3 =  'cyan'
-color_4 =  'blue'
-color_5 =  'purple'
-color_fg = 'bright-white'
-# color_7 = 'bright-black'
+color_0 = "red"
+color_1 = "yellow"
+color_2 = "green"
+color_3 = "cyan"
+color_4 = "blue"
+color_5 = "purple"
+color_fg = "bright-white"
+color_muted = "black"
 
 [username]
-style_user = "bg:color_1 fg:color_fg"
-style_root = "bg:color_1 fg:color_fg"
-format = '[$user]($style)'
+style_user = "bg:color_1 fg:color_muted bold"
+style_root = "bg:color_1 fg:color_muted bold"
+format = "[$user]($style)"
 
 [hostname]
-style = "bg:color_1 fg:color_fg"
+style = "bg:color_1 fg:color_muted bold"
 ssh_symbol = "@"
-format = '[$ssh_symbol$hostname ]($style)'
+format = "[$ssh_symbol$hostname ]($style)"
 
 [os]
 disabled = false
 style = "bg:color_0 fg:color_fg"
+format = "[$symbol ]($style)"
 
 [os.symbols]
 NixOS = "󱄅"
@@ -66,50 +73,64 @@ Pop = ""
 
 [shlvl]
 disabled = false
-style = "bg:color_1 fg:color_fg"
-format = '[\($shlvl\)]($style)'
+style = "bg:color_1 fg:color_muted"
+format = "[ \\($shlvl\\)]($style)"
 
 [shell]
 disabled = false
-style = "bg:color_1 fg:color_fg"
-format = '[$indicator]($style)'
+style = "bg:color_1 fg:color_muted"
+format = "[$indicator]($style)"
 
 [directory]
-style = "blue"
+style = "fg:color_muted bg:color_2"
+truncation_symbol = '…/'
+format = "[$path]($style)[$read_only]($read_only_style)"
+read_only = " "
+read_only_style = "fg:bright-red bg:color_2"
 
-[character]
-success_symbol = "[❯](green)"
-error_symbol = "[❯](red)"
+[python]
+format = "[$symbol $virtualenv]($style)"
+symbol = "󰌠"
+style = "fg:color_fg bg:color_4"
+detect_extensions = []
+detect_files = []
+
+[nix_shell]
+format = "[$symbol $state( \\($name\\))]($style)"
+symbol = "󱄅"
+style = "fg:color_fg bg:color_4"
 
 [git_branch]
-format = "[$branch]($style)"
-style = "bright-black"
+format = "[$symbol$branch]($style)"
+symbol = " "
+style = "fg:color_muted bg:color_3"
 
 [git_status]
-format = "[[(*$conflicted$untracked$modified$staged$renamed$deleted)](218) ($ahead_behind$stashed)]($style)"
-style = "cyan"
-conflicted = "​"
-untracked = "​"
-modified = "​"
-staged = "​"
-renamed = "​"
-deleted = "​"
+format = "[ $all_status$ahead_behind]($style)"
+style = "fg:color_muted bg:color_3"
+
+conflicted = "!"
+untracked = "?"
+modified = "!"
+staged = "+"
+renamed = "»"
+deleted = "✘"
 stashed = "≡"
 
 [git_state]
-format = '\([$state( $progress_current/$progress_total)]($style)\) '
-style = "bright-black"
-
-[nix_shell]
-format = '[$symbol(fg:white) $state( \($name\))]($style) '
-symbol = "󱄅"
+format = " \\([$state( $progress_current/$progress_total)]($style)\\)"
+style = "fg:color_muted bg:color_3"
 
 [cmd_duration]
-format = "[$duration]($style) "
-style = "yellow"
+format = "[$duration]($style)"
+style = "fg:color_fg bg:color_5"
 
-[python]
-format = "[$virtualenv]($style) "
-style = "bright-black"
-detect_extensions = []
-detect_files = []
+[battery]
+format = "[ $symbol$percentage]($style)"
+
+[[battery.display]]
+threshold = 10
+
+[character]
+success_symbol = "[❯](fg:color_2)"
+error_symbol = "[❯](fg:color_0)"

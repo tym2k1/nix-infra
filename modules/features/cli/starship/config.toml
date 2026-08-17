@@ -20,7 +20,11 @@ $cmd_duration\
 [](fg:color_5)\
 $battery\
 $line_break\
-$character"""
+$status\
+$character
+"""
+
+add_newline = true
 
 palette = "base16"
 
@@ -74,7 +78,7 @@ Pop = ""
 [shlvl]
 disabled = false
 style = "bg:color_1 fg:color_muted"
-format = "[ \\($shlvl\\)]($style)"
+format = "[\\($shlvl\\)]($style)"
 
 [shell]
 disabled = false
@@ -109,12 +113,12 @@ style = "fg:color_muted bg:color_3"
 format = "[ $all_status$ahead_behind]($style)"
 style = "fg:color_muted bg:color_3"
 
-conflicted = "!"
-untracked = "?"
-modified = "!"
-staged = "+"
-renamed = "»"
-deleted = "✘"
+conflicted = ""
+untracked = " "
+modified = " "
+staged = ""
+renamed = " "
+deleted = " "
 stashed = "≡"
 
 [git_state]
@@ -130,6 +134,11 @@ format = "[ $symbol$percentage]($style)"
 
 [[battery.display]]
 threshold = 10
+
+[status]
+style = 'fg:color_fg'
+format = '\([$status]($style)\)'
+disabled = false
 
 [character]
 success_symbol = "[❯](fg:color_2)"

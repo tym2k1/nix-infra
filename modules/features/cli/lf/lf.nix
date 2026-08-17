@@ -5,7 +5,7 @@
     ];
   };
 
-  perSystem = { pkgs, lib, ... }: let
+  perSystem = { pkgs, lib, self', ... }: let
 
     yankMarkdown = pkgs.writeShellScriptBin "yank-markdown" ''
       set -eu
@@ -140,11 +140,9 @@
         cmd yank-content &${yankMarkdown}/bin/yank-markdown $fx
 
         map Q quit
-        map q quit-and-cd
-
-        cmd quit-and-cd &{{
-          pwd > $LF_CD_FILE
-          lf -remote "send $id quit"
+        map q quit
+        cmd q &{{
+            lf -remote "send $id quit"
         }}
 
         map do dragon-drop
@@ -171,12 +169,23 @@
           lf -remote "send $id recol"
         }}
 
+        cmd on-cd &{{
+          fmt="$(STARSHIP_SHELL= ${self'.packages.myStarship}/bin/starship prompt |
+            sed -n '2p' |
+            sed 's/\\/\\\\/g;s/"/\\"/g')
+            "
+          lf -remote "send $id set promptfmt \"$fmt\""
+        }}
+
         set previewer ${pkgs.ctpv}/bin/ctpv
 
         set cleaner ${pkgs.ctpv}/bin/ctpvclear
         set cursorpreviewfmt "\033[7m"
         &${pkgs.ctpv}/bin/ctpv -s $id
         &${pkgs.ctpv}/bin/ctpvquit $id
+
+        #Startup
+        on-cd
     '';
 
     lfWithConfig = pkgs.symlinkJoin {

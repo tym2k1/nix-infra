@@ -176,25 +176,27 @@
         &${pkgs.ctpv}/bin/ctpv -s $id
         &${pkgs.ctpv}/bin/ctpvquit $id
 
-        cmd set-starship-prompt %{{
+        # Update prompt when changing directories
+        cmd on-cd %{{
           fmt="$(STARSHIP_SHELL= ${self'.packages.myStarship}/bin/starship prompt |
             sed -n '2p' |
             sed 's/\\/\\\\/g;s/"/\\"/g')"
           lf -remote "send $id set promptfmt \"$fmt\""
         }}
 
-        # Update prompt when changing directories
-        cmd on-cd %{{
-          lf -remote "send $id set-starship-prompt"
-        }}
-
         # Set starship prompt if first LF instance
         cmd on-init %{{
-          lf -remote "send $id set-starship-prompt"
+          fmt="$(STARSHIP_SHELL= ${self'.packages.myStarship}/bin/starship prompt |
+            sed -n '2p' |
+            sed 's/\\/\\\\/g;s/"/\\"/g')"
+          lf -remote "send $id set promptfmt \"$fmt\""
         }}
 
         # Set starship prompt for all concurrent instances
-        set-starship-prompt
+        fmt="$(STARSHIP_SHELL= ${self'.packages.myStarship}/bin/starship prompt |
+          sed -n '2p' |
+          sed 's/\\/\\\\/g;s/"/\\"/g')"
+        lf -remote "send $id set promptfmt \"$fmt\""
     '';
 
     lfWithConfig = pkgs.symlinkJoin {

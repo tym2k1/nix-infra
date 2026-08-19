@@ -102,6 +102,15 @@
       )" > /dev/tty
     '';
 
+    # Written here for DRY. Making it as a lf command would require sending 2 `lf -remote send`
+    # so would be slower.
+    starshipPromptScript = ''
+      fmt="$(STARSHIP_SHELL= ${self'.packages.myStarship}/bin/starship prompt |
+        sed -n '2p' |
+        sed 's/\\/\\\\/g;s/"/\\"/g')"
+      lf -remote "send $id set promptfmt \"$fmt\""
+    '';
+
     lfrc = pkgs.writeText "lfrc" ''
         set autoquit
         set icons
@@ -177,26 +186,19 @@
         &${pkgs.ctpv}/bin/ctpvquit $id
 
         # Update prompt when changing directories
-        cmd on-cd %{{
-          fmt="$(STARSHIP_SHELL= ${self'.packages.myStarship}/bin/starship prompt |
-            sed -n '2p' |
-            sed 's/\\/\\\\/g;s/"/\\"/g')"
-          lf -remote "send $id set promptfmt \"$fmt\""
+        cmd on-cd &{{
+          ${starshipPromptScript}
         }}
 
         # Set starship prompt if first LF instance
-        cmd on-init %{{
-          fmt="$(STARSHIP_SHELL= ${self'.packages.myStarship}/bin/starship prompt |
-            sed -n '2p' |
-            sed 's/\\/\\\\/g;s/"/\\"/g')"
-          lf -remote "send $id set promptfmt \"$fmt\""
+        cmd on-init &{{
+          ${starshipPromptScript}
         }}
 
         # Set starship prompt for all concurrent instances
-        fmt="$(STARSHIP_SHELL= ${self'.packages.myStarship}/bin/starship prompt |
-          sed -n '2p' |
-          sed 's/\\/\\\\/g;s/"/\\"/g')"
-        lf -remote "send $id set promptfmt \"$fmt\""
+        &{{
+          ${starshipPromptScript}
+        }}
     '';
 
     lfWithConfig = pkgs.symlinkJoin {

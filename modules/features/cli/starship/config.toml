@@ -4,8 +4,6 @@ $os\
 [▓▒░](bg:color_1 fg:color_0)\
 $username\
 $hostname\
-$shell\
-$shlvl\
 [▓▒░](bg:color_2 fg:color_1)\
 $directory\
 [▓▒░](bg:color_3 fg:color_2)\
@@ -13,8 +11,10 @@ $git_branch\
 $git_state\
 $git_status\
 [▓▒░](bg:color_4 fg:color_3)\
-$python\
+$shell\
+$shlvl\
 $nix_shell\
+$python\
 [▓▒░](bg:color_5 fg:color_4)\
 $cmd_duration\
 [](fg:color_5)\
@@ -39,14 +39,14 @@ color_fg = "bright-white"
 color_muted = "black"
 
 [username]
-style_user = "bg:color_1 fg:color_muted bold"
-style_root = "bg:color_1 fg:color_muted bold"
+style_user = "bg:color_1 fg:color_muted"
+style_root = "bg:color_1 fg:color_muted"
 format = "[$user]($style)"
 
 [hostname]
-style = "bg:color_1 fg:color_muted bold"
+style = "bg:color_1 fg:color_muted"
 ssh_symbol = "@"
-format = "[$ssh_symbol$hostname ]($style)"
+format = "[$ssh_symbol$hostname]($style)"
 
 [os]
 disabled = false
@@ -75,22 +75,27 @@ Redhat = "󱄛"
 RedHatEnterprise = ""
 Pop = ""
 
+[directory]
+style = "fg:color_muted bg:color_2"
+before_repo_root_style = "fg:color_muted bg:color_2"
+repo_root_style = "fg:color_muted bg:color_2 underline"
+repo_root_format = "[$before_root_path]($before_repo_root_style)[$repo_root]($repo_root_style)[$path]($repo_root_style)[$read_only]($read_only_style)"
+truncation_length = 5
+truncation_symbol = '…/'
+truncate_to_repo = false
+format = "[$path]($style)[$read_only]($read_only_style)"
+read_only = " "
+read_only_style = "fg:color_muted bg:color_2"
+
 [shlvl]
 disabled = false
-style = "bg:color_1 fg:color_muted"
+style = "bg:color_4 fg:color_fg"
 format = "[\\($shlvl\\)]($style)"
 
 [shell]
 disabled = false
-style = "bg:color_1 fg:color_muted"
+style = "bg:color_4 fg:color_fg"
 format = "[$indicator]($style)"
-
-[directory]
-style = "fg:color_muted bg:color_2"
-truncation_symbol = '…/'
-format = "[$path]($style)[$read_only]($read_only_style)"
-read_only = " "
-read_only_style = "fg:bright-red bg:color_2"
 
 [python]
 format = "[$symbol $virtualenv]($style)"
@@ -100,9 +105,10 @@ detect_extensions = []
 detect_files = []
 
 [nix_shell]
-format = "[$symbol $state( \\($name\\))]($style)"
+format = "[ $symbol $state( \\($name\\))]($style)"
 symbol = "󱄅"
 style = "fg:color_fg bg:color_4"
+heuristic = true
 
 [git_branch]
 format = "[$symbol$branch]($style)"

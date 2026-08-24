@@ -178,6 +178,12 @@
           lf -remote "send $id recol"
         }}
 
+        cmd select-all-recursively &{{
+            ${pkgs.fd}/bin/fd --type f --strip-cwd-prefix | while read -r file; do
+                lf -remote "send $id toggle \"$file\""
+            done
+        }}
+
         set previewer ${pkgs.ctpv}/bin/ctpv
 
         set cleaner ${pkgs.ctpv}/bin/ctpvclear

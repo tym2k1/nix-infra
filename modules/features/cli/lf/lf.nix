@@ -125,7 +125,7 @@
         set drawbox true
         set roundbox true
 
-        map <backspace2> set hidden!
+        map <backspace> set hidden!
         map e editor-open
         map E editor-open-select
         cmd editor-open $$EDITOR $(echo "$f" | tr '\n' ' ' | xargs -d ' ' -I {} sh -c 'if [ ! -d "{}" ]; then echo "{}"; fi')

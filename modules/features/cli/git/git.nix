@@ -26,6 +26,17 @@
       text = builtins.readFile ./git-identity;
     };
 
+    gitCommitKoji = pkgs.writeShellApplication {
+      name = "git-commit-koji";
+
+      text = ''
+        message="$("${pkgs.lib.getExe pkgs.koji}" --stdout)" || exit $?
+
+        printf '%s\n' "$message" |
+          git commit --file=- "$@"
+      '';
+    };
+
     gitConfig = pkgs.writeText "gitconfig" ''
 
       # extremely important, otherwise git will attempt to guess a default user identity. see `man git-config` for more details
@@ -43,7 +54,7 @@
       [alias]
         identity = "!git-identity"
         id = "!git-identity"
-        cc = "!${pkgs.lib.getExe pkgs.koji}"
+        cc = "!git-commit-koji"
 
       ${builtins.readFile ./gitconfig}
     '';
@@ -56,6 +67,7 @@
         pkgs.git
         pkgs.gnupg
         gitIdentity
+        gitCommitKoji
       ];
 
     text = ''

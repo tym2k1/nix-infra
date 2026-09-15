@@ -43,6 +43,7 @@
       [alias]
         identity = "!git-identity"
         id = "!git-identity"
+        cc = "!${pkgs.lib.getExe pkgs.koji}"
 
       ${builtins.readFile ./gitconfig}
     '';

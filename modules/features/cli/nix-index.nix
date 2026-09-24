@@ -1,18 +1,32 @@
 { inputs, ... }:
 
 {
-  perSystem = { pkgs, system, ... }:
+  perSystem = { pkgs, ... }:
     let
-      nixIndexPkgs = pkgs.extend inputs.nix-index-database.overlays.nix-index;
-    in {
-      packages.comma = nixIndexPkgs.callPackage
-        "${inputs.nix-index-database}/comma-wrapper.nix"
-        {};
-    };
+      nixIndexPkgs =
+        pkgs.extend inputs.nix-index-database.overlays.nix-index;
 
-  flake.nixosModules.nix-index = { ... }: {
-    imports = [
-      inputs.nix-index-database.nixosModules.default
-    ];
-  };
+      comma = nixIndexPkgs.callPackage
+        "${inputs.nix-index-database}/comma-wrapper.nix"
+        { };
+    in {
+      packages = {
+        myComma = pkgs.symlinkJoin {
+          name = "my-comma";
+
+          paths = [ comma ];
+
+          nativeBuildInputs = [ pkgs.makeWrapper ];
+
+          postBuild = ''
+            wrapProgram "$out/bin/," \
+              --set COMMA_CACHING 0
+          '';
+        };
+
+        myNixIndex = nixIndexPkgs.callPackage
+          "${inputs.nix-index-database}/nix-index-wrapper.nix"
+          { };
+      };
+    };
 }

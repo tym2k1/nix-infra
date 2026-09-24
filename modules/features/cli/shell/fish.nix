@@ -45,6 +45,20 @@ perSystem = { pkgs, self', ... }: let
     end
   '';
 
+  zkAliasFishCompletion = pkgs.writeText "zk-alias-completion.fish" ''
+    function __zk_aliases --description "List configured zk aliases"
+      command ${self'.packages.myZk}/bin/zk config --list aliases 2>/dev/null \
+        | string match --regex '^[^[:space:]]+$'
+    end
+
+    complete \
+      --command zk \
+      --condition '__fish_use_subcommand' \
+      --no-files \
+      --arguments '(__zk_aliases)' \
+      --description 'zk alias'
+  '';
+
   fishConfig = pkgs.writeText "config.fish" ''
     set -gx EDITOR hx
     set -U fish_greeting
@@ -90,6 +104,7 @@ perSystem = { pkgs, self', ... }: let
 
     source ${zellijFishCompletion}/completions.fish
     source ${commaCommandNotFound}
+    source ${zkAliasFishCompletion}
 
     ${self'.packages.myStarship}/bin/starship init fish | source
   '';

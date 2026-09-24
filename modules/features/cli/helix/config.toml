@@ -17,3 +17,7 @@ select = "underline"
 
 [editor.file-picker]
 hidden = false
+
+[editor.inline-diagnostics]
+cursor-line = "hint"
+other-lines = "hint"

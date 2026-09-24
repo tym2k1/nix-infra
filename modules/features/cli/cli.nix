@@ -2,6 +2,9 @@
   flake.nixosModules.cli-tools = { pkgs, lib, ... }: {
     environment.systemPackages =
       [ self.packages.${pkgs.stdenv.hostPlatform.system}.myCli ];
+    imports = with self.nixosModules; [
+        nix-index
+      ];
   };
   perSystem = { pkgs, self', ... }:
     let
@@ -22,7 +25,6 @@ in {
         self'.packages.myGit
         self'.packages.myHelix
         self'.packages.myZellij
-        nix-index
         dust
         btop
         dragon-drop

@@ -25,6 +25,7 @@ in {
         self'.packages.myGit
         self'.packages.myHelix
         self'.packages.myZellij
+        self'.packages.comma
         dust
         btop
         dragon-drop

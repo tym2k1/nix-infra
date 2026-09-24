@@ -24,6 +24,7 @@ in {
         self'.packages.myZellij
         self'.packages.myComma
         self'.packages.myNixIndex
+        self'.packages.myZk
         dust
         btop
         dragon-drop

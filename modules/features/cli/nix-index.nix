@@ -20,7 +20,7 @@
 
           postBuild = ''
             wrapProgram "$out/bin/," \
-              --set COMMA_CACHING 0
+              --set-default COMMA_CACHING 0
           '';
         };
 

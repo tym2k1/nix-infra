@@ -16,6 +16,35 @@ perSystem = { pkgs, self', ... }: let
       > $out/completions.fish
   '';
 
+  commaCommandNotFound = pkgs.writeText "comma-command-not-found.fish" ''
+    function fish_command_not_found \
+        --description "Offer to run missing commands through comma"
+
+      set -l escaped_argv (string escape -- $argv)
+      set -l display_command (string join " " -- $escaped_argv)
+
+      # Avoid prompting when Fish is used non-interactively.
+      if not status is-interactive
+        printf "fish: Unknown command: %s\n" "$argv[1]" >&2
+        return 127
+      end
+
+      read --local \
+        --prompt-str "Command not found: $display_command. Run with comma? [y/N] " \
+        answer
+
+      switch (string lower -- "$answer")
+        case y yes
+          command ${self'.packages.myComma}/bin/, $argv
+          return $status
+
+        case '*'
+          printf "fish: Unknown command: %s\n" "$argv[1]" >&2
+          return 127
+      end
+    end
+  '';
+
   fishConfig = pkgs.writeText "config.fish" ''
     set -gx EDITOR hx
     set -U fish_greeting
@@ -60,6 +89,7 @@ perSystem = { pkgs, self', ... }: let
     set -e LC_ALL                 # make sure nothing overrides these
 
     source ${zellijFishCompletion}/completions.fish
+    source ${commaCommandNotFound}
 
     ${self'.packages.myStarship}/bin/starship init fish | source
   '';

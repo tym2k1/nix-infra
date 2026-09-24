@@ -1,5 +1,5 @@
 { self, inputs, ... }: {
-  flake.nixosModules.helix = { pkgs, ... }: {
+  flake.nixosModules.wezterm = { pkgs, ... }: {
     environment.systemPackages = [
       self.packages.${pkgs.stdenv.hostPlatform.system}.myWezterm
     ];

@@ -128,7 +128,7 @@ deleted = " "
 stashed = "≡"
 
 [git_state]
-format = " \\([$state( $progress_current/$progress_total)]($style)\\)"
+format = "([\\($state( $progress_current/$progress_total)\\)]($style)"
 style = "fg:color_muted bg:color_3"
 
 [cmd_duration]

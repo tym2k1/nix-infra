@@ -45,7 +45,7 @@ perSystem = { pkgs, self', ... }: let
     default-title = "Untitled"
 
     # Template used to generate a note's filename, without extension.
-    filename = "{{id}}-{{slug title}}"
+    filename = "{{id}}"
 
     # The file extension used for the notes.
     extension = "md"

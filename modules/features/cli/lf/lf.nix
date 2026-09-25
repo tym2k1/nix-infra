@@ -136,6 +136,9 @@
         map p
         map pp paste
 
+        # helix style bindings
+        map ge bottom
+
         map w
 
         map y

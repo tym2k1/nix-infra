@@ -105,7 +105,7 @@
     # Written here for DRY. Making it as a lf command would require sending 2 `lf -remote send`
     # so would be slower.
     starshipPromptScript = ''
-      fmt="$(STARSHIP_SHELL= ${self'.packages.myStarship}/bin/starship prompt |
+      fmt="$(STARSHIP_SHELL= ${self'.packages.myStarship}/bin/starship prompt --shlvl 1 |
         sed -n '2p' |
         sed 's/\\/\\\\/g;s/"/\\"/g')"
       lf -remote "send $id set promptfmt \"$fmt\""

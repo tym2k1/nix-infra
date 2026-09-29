@@ -15,7 +15,7 @@ use time::{Date, Duration, Month};
 #[serde(rename_all = "camelCase")]
 struct Note {
     filename_stem: String,
-    path: String,
+    abs_path: String,
 }
 
 struct App {
@@ -53,7 +53,7 @@ impl App {
             let date = parse_date(&note.filename_stem)
                 .ok_or_else(|| eyre!("invalid daily note date: {}", note.filename_stem))?;
 
-            notes_by_date.insert(date, note.path);
+            notes_by_date.insert(date, note.abs_path);
         }
 
         // Begin on the newest available note.

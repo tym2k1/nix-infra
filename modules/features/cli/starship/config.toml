@@ -17,10 +17,10 @@ $nix_shell\
 $python\
 [▓▒░](bg:color_5 fg:color_4)\
 $cmd_duration\
+$status\
 [](fg:color_5)\
 $battery\
 $line_break\
-$status\
 $character
 """
 
@@ -134,6 +134,8 @@ style = "fg:color_muted bg:color_3"
 [cmd_duration]
 format = "[$duration]($style)"
 style = "fg:color_fg bg:color_5"
+min_time = 0
+show_milliseconds = true
 
 [battery]
 format = "[ $symbol$percentage]($style)"
@@ -142,10 +144,10 @@ format = "[ $symbol$percentage]($style)"
 threshold = 10
 
 [status]
-style = 'fg:color_fg'
-format = '\([$status]($style)\)'
+style = "fg:color_fg bg:color_5"
+format = '[ \($status\)]($style)'
 disabled = false
 
 [character]
-success_symbol = "[❯](fg:color_2)"
-error_symbol = "[❯](fg:color_0)"
+success_symbol = '[\$](fg:color_2)'
+error_symbol = '[\$](fg:color_0)'

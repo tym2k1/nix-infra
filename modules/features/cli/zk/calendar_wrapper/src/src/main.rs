@@ -1,8 +1,11 @@
 use std::collections::BTreeMap;
+use std::fs::OpenOptions;
 use std::io;
+use std::os::fd::AsFd;
 
 use color_eyre::eyre::{eyre, Result};
 use crossterm::event::{self, KeyCode};
+use nix::unistd::{dup, dup2_stdin, dup2_stdout};
 use ratatui::layout::{Constraint, Layout};
 use ratatui::style::{Color, Modifier, Style, Stylize};
 use ratatui::text::{Line, Text};
@@ -33,9 +36,24 @@ fn main() -> Result<()> {
         serde_json::from_reader(stdin.lock())?
     };
 
+    // Save the real stdout (which may be a pipe), then use /dev/tty
+    // for both Ratatui's output and Crossterm's input.
+    let stdout = dup(io::stdout().as_fd())?;
+    let tty = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open("/dev/tty")?;
+
+    dup2_stdin(&tty)?;
+    dup2_stdout(&tty)?;
+
     let mut app = App::new(notes)?;
 
     ratatui::run(|terminal| app.run(terminal))?;
+
+    // Restore the original stdout so the selected path goes down
+    // the pipeline rather than to the terminal.
+    dup2_stdout(&stdout)?;
 
     // Ratatui has restored the terminal at this point.
     if let Some(path) = app.picked_path {

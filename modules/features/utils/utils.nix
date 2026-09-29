@@ -9,6 +9,8 @@
         orca-slicer
         zathura
         freecad
+        anki
+        keepassxc
         kdePackages.okular
         self.packages.${pkgs.stdenv.hostPlatform.system}.myWezterm
       ];

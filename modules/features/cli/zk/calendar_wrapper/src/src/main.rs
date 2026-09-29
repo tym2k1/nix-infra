@@ -10,6 +10,7 @@ use ratatui::layout::{Constraint, Layout};
 use ratatui::style::{Color, Modifier, Style, Stylize};
 use ratatui::text::{Line, Text};
 use ratatui::widgets::calendar::{CalendarEventStore, Monthly};
+use ratatui::widgets::{Block, Paragraph, Wrap};
 use ratatui::{DefaultTerminal, Frame};
 use serde::Deserialize;
 use time::{Date, Duration, Month};
@@ -19,10 +20,16 @@ use time::{Date, Duration, Month};
 struct Note {
     filename_stem: String,
     abs_path: String,
+    raw_content: String,
+}
+
+struct NotePreview {
+    path: String,
+    raw_content: String,
 }
 
 struct App {
-    notes: BTreeMap<Date, String>,
+    notes: BTreeMap<Date, NotePreview>,
     selected_date: Date,
     picked_path: Option<String>,
 }
@@ -71,10 +78,15 @@ impl App {
             let date = parse_date(&note.filename_stem)
                 .ok_or_else(|| eyre!("invalid daily note date: {}", note.filename_stem))?;
 
-            notes_by_date.insert(date, note.abs_path);
+            notes_by_date.insert(
+                date,
+                NotePreview {
+                    path: note.abs_path,
+                    raw_content: note.raw_content,
+                },
+            );
         }
 
-        // Begin on the newest available note.
         let selected_date = notes_by_date
             .keys()
             .next_back()
@@ -97,8 +109,8 @@ impl App {
                     KeyCode::Char('q') | KeyCode::Esc => return Ok(()),
 
                     KeyCode::Enter => {
-                        if let Some(path) = self.notes.get(&self.selected_date) {
-                            self.picked_path = Some(path.clone());
+                        if let Some(note) = self.notes.get(&self.selected_date) {
+                            self.picked_path = Some(note.path.clone());
                             return Ok(());
                         }
                     }
@@ -160,7 +172,7 @@ impl App {
         let selected_note = self
             .notes
             .get(&self.selected_date)
-            .map(String::as_str)
+            .map(|note| note.path.as_str())
             .unwrap_or("(no note for this date)");
 
         let header = Text::from_iter([
@@ -174,13 +186,19 @@ impl App {
             ),
         ]);
 
-        let [header_area, calendar_area] =
+        let [header_area, content_area] =
             frame.area().layout(&Layout::vertical([
                 Constraint::Length(3),
                 Constraint::Fill(1),
             ]));
 
         frame.render_widget(header, header_area);
+
+        let [calendar_area, preview_area] =
+            content_area.layout(&Layout::horizontal([
+                Constraint::Percentage(50),
+                Constraint::Percentage(50),
+            ]));
 
         let events = self.events();
         let calendar = Monthly::new(self.selected_date, &events)
@@ -189,6 +207,19 @@ impl App {
             .show_surrounding(Style::new().dim());
 
         frame.render_widget(calendar, calendar_area);
+
+        let preview = self
+            .notes
+            .get(&self.selected_date)
+            .map(|note| note.raw_content.as_str())
+            .unwrap_or("(no note for this date)");
+
+        frame.render_widget(
+            Paragraph::new(preview)
+                .block(Block::bordered().title("Preview"))
+                .wrap(Wrap { trim: false }),
+            preview_area,
+        );
     }
 }
 

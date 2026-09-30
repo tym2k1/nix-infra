@@ -25,7 +25,6 @@ in {
         self'.packages.myComma
         self'.packages.myNixIndex
         self'.packages.myZk
-        self'.packages.zkCalendarPicker
         dust
         btop
         dragon-drop

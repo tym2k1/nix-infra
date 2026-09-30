@@ -4,7 +4,7 @@ use std::io;
 use std::os::fd::AsFd;
 
 use color_eyre::eyre::{eyre, Result};
-use crossterm::event::{self, KeyCode};
+use crossterm::event::{self, KeyCode, KeyModifiers};
 use nix::unistd::{dup, dup2_stdin, dup2_stdout};
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
@@ -112,6 +112,9 @@ impl App {
             if let Some(key) = event::read()?.as_key_press_event() {
                 match key.code {
                     KeyCode::Char('q') | KeyCode::Esc => return Ok(()),
+                    KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                        return Ok(());
+                    }
 
                     KeyCode::Enter => {
                         if let Some(note) = self.notes.get(&self.selected_date) {

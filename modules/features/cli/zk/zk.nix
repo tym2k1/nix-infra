@@ -124,6 +124,8 @@ perSystem = { pkgs, self', ... }: let
     # Edit the notes selected interactively among the notes created the last two weeks.
     recent = "zk edit --sort created- --created-after 'last two weeks' --interactive"
 
+    calendar = "zk list --tag daily --format json --no-pager | ${self'.packages.zkCalendarPicker}/bin/zk-calendar-picker | xargs --no-run-if-empty $EDITOR"
+
     # Default commands, rewritten here so autocomplete can be generated from aliases
     new = 'zk new "$@"'
     index = 'zk index "$@"'

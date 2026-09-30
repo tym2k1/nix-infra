@@ -12,6 +12,11 @@ perSystem = { pkgs, self', ... }: let
 
     '';
 
+  todoNoteTemplate = pkgs.writeText "daily.md" ''
+    # TODO
+    #todo
+    '';
+
   helixConfig = pkgs.writeText "config.toml" ''
     [editor.inline-diagnostics]
     cursor-line = "hint"
@@ -21,7 +26,7 @@ perSystem = { pkgs, self', ... }: let
   helixLSPConfig = pkgs.writeText "languages.toml" ''
     [language-server.zk]
     command = "zk"
-    args = ["lsp"]
+    args = ["lsp-wrapped"]
 
     [[language]]
     name = "markdown"
@@ -72,6 +77,12 @@ perSystem = { pkgs, self', ... }: let
     [group.journal.note]
     filename = "{{format-date now}}"
     template = "daily.md"
+
+    [group.todo]
+    paths = ["todo/*"]
+
+    [group.todo.note]
+    template = "todo.md"
 
     # MARKDOWN SETTINGS
     [format.markdown]
@@ -135,6 +146,8 @@ perSystem = { pkgs, self', ... }: let
     edit = 'zk edit "$@"'
     tag = 'zk tag "$@"'
 
+    lsp-wrapped = '${self'.packages.zkLSPWrapper}/bin/zk-lsp-wrapper'
+
     # LSP (EDITOR INTEGRATION)
     [lsp]
 
@@ -160,6 +173,7 @@ in {
       mkdir -p $out/share/zk/templates
       ln -s ${zkConfig} $out/share/zk/config.toml
       ln -s ${dailyNoteTemplate} $out/share/zk/templates/daily.md
+      ln -s ${todoNoteTemplate} $out/share/zk/templates/todo.md
       wrapProgram $out/bin/zk \
       --set ZK_CONFIG_DIR "$out/share/zk"
     '';

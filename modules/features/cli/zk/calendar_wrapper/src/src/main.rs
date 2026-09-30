@@ -6,9 +6,8 @@ use std::os::fd::AsFd;
 use color_eyre::eyre::{eyre, Result};
 use crossterm::event::{self, KeyCode};
 use nix::unistd::{dup, dup2_stdin, dup2_stdout};
-use ratatui::layout::{Constraint, Layout};
-use ratatui::style::{Color, Modifier, Style, Stylize};
-use ratatui::text::{Line, Text};
+use ratatui::layout::{Constraint, Layout, Rect};
+use ratatui::style::{Color, Modifier, Style};
 use ratatui::widgets::calendar::{CalendarEventStore, Monthly};
 use ratatui::widgets::{Block, Paragraph, Wrap};
 use ratatui::{DefaultTerminal, Frame};
@@ -31,6 +30,9 @@ struct NotePreview {
 struct App {
     notes: BTreeMap<Date, NotePreview>,
     selected_date: Date,
+    calendar_start: Date,
+    calendar_columns: u16,
+    calendar_rows: u16,
     picked_path: Option<String>,
 }
 
@@ -96,6 +98,9 @@ impl App {
         Ok(Self {
             notes: notes_by_date,
             selected_date,
+            calendar_start: selected_date,
+            calendar_columns: 1,
+            calendar_rows: 1,
             picked_path: None,
         })
     }
@@ -115,10 +120,16 @@ impl App {
                         }
                     }
 
-                    KeyCode::Char('h') | KeyCode::Left => self.move_days(-1),
-                    KeyCode::Char('j') | KeyCode::Down => self.move_days(7),
-                    KeyCode::Char('k') | KeyCode::Up => self.move_days(-7),
-                    KeyCode::Char('l') | KeyCode::Right => self.move_days(1),
+                    KeyCode::Char('h') | KeyCode::Left => self.move_days(-1, 1),
+                    KeyCode::Char('l') | KeyCode::Right => self.move_days(1, 1),
+
+                    KeyCode::Char('j') | KeyCode::Down => {
+                        self.move_days(7, self.calendar_columns as i32)
+                    }
+
+                    KeyCode::Char('k') | KeyCode::Up => {
+                        self.move_days(-7, self.calendar_columns as i32)
+                    }
 
                     KeyCode::Char('n') | KeyCode::PageDown | KeyCode::Tab => {
                         self.move_month(1);
@@ -134,15 +145,34 @@ impl App {
         }
     }
 
-    fn move_days(&mut self, days: i64) {
+    fn move_days(&mut self, days: i64, viewport_step: i32) {
         if let Some(date) = self.selected_date.checked_add(Duration::days(days)) {
             self.selected_date = date;
+            self.ensure_visible(viewport_step);
         }
     }
 
     fn move_month(&mut self, months: i32) {
         if let Some(date) = shift_month(self.selected_date, months) {
             self.selected_date = date;
+            self.ensure_visible(months);
+        }
+    }
+
+    fn ensure_visible(&mut self, step: i32) {
+        let selected_month = month_start(self.selected_date);
+        let start_month = month_start(self.calendar_start);
+
+        let month_offset = month_difference(start_month, selected_month);
+        let visible_months =
+            (self.calendar_columns * self.calendar_rows) as i32;
+
+        if month_offset < 0 {
+            self.calendar_start =
+                shift_month(start_month, -step.abs()).unwrap_or(selected_month);
+        } else if month_offset >= visible_months {
+            self.calendar_start =
+                shift_month(start_month, step.abs()).unwrap_or(selected_month);
         }
     }
 
@@ -168,45 +198,58 @@ impl App {
         events
     }
 
-    fn render(&self, frame: &mut Frame) {
-        let selected_note = self
-            .notes
-            .get(&self.selected_date)
-            .map(|note| note.path.as_str())
-            .unwrap_or("(no note for this date)");
-
-        let header = Text::from_iter([
-            Line::from("Daily notes — green has a note, red is selected".bold()),
-            Line::from(format!(
-                "Selected: {} | {}",
-                self.selected_date, selected_note
-            )),
-            Line::from(
-                "<Enter> select | <q/Esc> quit | <hjkl/arrows> move | <n/p> month",
-            ),
-        ]);
-
-        let [header_area, content_area] =
-            frame.area().layout(&Layout::vertical([
-                Constraint::Length(3),
-                Constraint::Fill(1),
-            ]));
-
-        frame.render_widget(header, header_area);
+    fn render(&mut self, frame: &mut Frame) {
+        const MONTH_WIDTH: u16 = 22;
+        const MONTH_HEIGHT: u16 = 9;
 
         let [calendar_area, preview_area] =
-            content_area.layout(&Layout::horizontal([
+            frame.area().layout(&Layout::horizontal([
                 Constraint::Percentage(50),
                 Constraint::Percentage(50),
             ]));
 
-        let events = self.events();
-        let calendar = Monthly::new(self.selected_date, &events)
-            .show_month_header(Style::new().bold())
-            .show_weekdays_header(Style::new().fg(Color::Cyan))
-            .show_surrounding(Style::new().dim());
+        let calendar_inner =
+            calendar_area.inner(ratatui::layout::Margin::new(1, 1));
 
-        frame.render_widget(calendar, calendar_area);
+        let columns = (calendar_inner.width / MONTH_WIDTH).max(1);
+        let rows = (calendar_inner.height / MONTH_HEIGHT).max(1);
+
+        self.calendar_columns = columns;
+        self.calendar_rows = rows;
+
+        let visible_months = columns * rows;
+        let events = self.events();
+
+        frame.render_widget(
+            Block::bordered().title(" Calendar "),
+            calendar_area,
+        );
+
+        for index in 0..visible_months {
+            let row = index / columns;
+            let column = index % columns;
+
+            let area = Rect {
+                x: calendar_inner.x + column * MONTH_WIDTH,
+                y: calendar_inner.y + row * MONTH_HEIGHT,
+                width: MONTH_WIDTH
+                    .min(calendar_inner.width - column * MONTH_WIDTH),
+                height: MONTH_HEIGHT
+                    .min(calendar_inner.height - row * MONTH_HEIGHT),
+            };
+
+            let Some(date) =
+                shift_month(self.calendar_start, index as i32)
+            else {
+                continue;
+            };
+
+            let calendar = Monthly::new(date, &events)
+                .show_month_header(Style::new().bold())
+                .show_weekdays_header(Style::new().fg(Color::Cyan));
+
+            frame.render_widget(calendar, area);
+        }
 
         let preview = self
             .notes
@@ -216,7 +259,7 @@ impl App {
 
         frame.render_widget(
             Paragraph::new(preview)
-                .block(Block::bordered().title("Preview"))
+                .block(Block::bordered().title(" Preview "))
                 .wrap(Wrap { trim: false }),
             preview_area,
         );
@@ -235,6 +278,16 @@ fn parse_date(value: &str) -> Option<Date> {
     }
 
     Date::from_calendar_date(year, Month::try_from(month).ok()?, day).ok()
+}
+
+fn month_start(date: Date) -> Date {
+    Date::from_calendar_date(date.year(), date.month(), 1)
+        .expect("first day of month is always valid")
+}
+
+fn month_difference(from: Date, to: Date) -> i32 {
+    (to.year() - from.year()) * 12
+        + (to.month() as i32 - from.month() as i32)
 }
 
 fn shift_month(date: Date, months: i32) -> Option<Date> {

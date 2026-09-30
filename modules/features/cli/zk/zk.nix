@@ -79,7 +79,7 @@ perSystem = { pkgs, self', ... }: let
     template = "daily.md"
 
     [group.todo]
-    paths = ["todo/*"]
+    paths = ["todo/**"]
 
     [group.todo.note]
     template = "todo.md"
@@ -120,6 +120,8 @@ perSystem = { pkgs, self', ... }: let
     # Daily Journal note
     daily = 'zk new --no-input "$ZK_NOTEBOOK_DIR/journal/daily"'
 
+    todo = 'zk new "$ZK_NOTEBOOK_DIR/todo" -t "$*"'
+
     # Remove the autoprompt + hx setup
     init = """
         zk init --no-input &&
@@ -127,6 +129,7 @@ perSystem = { pkgs, self', ... }: let
         cat ${helixLSPConfig} > $ZK_NOTEBOOK_DIR/.helix/languages.toml &&
         cat ${helixConfig} > $ZK_NOTEBOOK_DIR/.helix/config.toml &&
         mkdir -p $ZK_NOTEBOOK_DIR/journal/daily
+        mkdir -p $ZK_NOTEBOOK_DIR/todo
       """
 
     # Edit the last modified note.
@@ -136,6 +139,7 @@ perSystem = { pkgs, self', ... }: let
     recent = "zk edit --sort created- --created-after 'last two weeks' --interactive"
 
     calendar = "zk list --tag daily --format json --no-pager | ${self'.packages.zkCalendarPicker}/bin/zk-calendar-picker | xargs --no-run-if-empty $EDITOR"
+    cal = "zk calendar"
 
     # Default commands, rewritten here so autocomplete can be generated from aliases
     new = 'zk new "$@"'

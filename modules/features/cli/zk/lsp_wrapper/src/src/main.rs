@@ -1,11 +1,15 @@
-use serde_json::{json, Value};
+use serde_json::Value;
 use std::collections::HashMap;
-use std::io::{self, BufRead, Read, Write};
+use std::env;
+use std::fs;
+use std::io::{self, BufRead, Write};
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
 type Requests = Arc<Mutex<HashMap<String, String>>>;
+type TaskStates = Arc<HashMap<String, String>>;
 
 fn read_message<R: BufRead>(reader: &mut R) -> io::Result<Option<Value>> {
     let mut content_length = None;
@@ -132,6 +136,231 @@ fn rewrite_completion(result: &mut Value) {
     }
 }
 
+// Extract title from YAML frontmatter or Markdown header.
+//
+// Supports:
+//
+// ---
+// title: My Task
+// ---
+//
+// and basic quoted values:
+//
+// title: "My Task"
+// title: 'My Task'
+
+fn extract_title(path: &Path) -> Option<String> {
+    let file = fs::File::open(path).ok()?;
+    let reader = io::BufReader::new(file);
+
+    let mut lines = reader.lines();
+
+    // First try YAML frontmatter.
+    if let Some(Ok(first_line)) = lines.next() {
+        if first_line.trim() == "---" {
+            for line in lines.by_ref() {
+                let line = line.ok()?;
+                let line = line.trim();
+
+                if line == "---" {
+                    break;
+                }
+
+                let Some(value) = line.strip_prefix("title:") else {
+                    continue;
+                };
+
+                let title = value.trim();
+
+                if title.is_empty() {
+                    break;
+                }
+
+                let title = if (title.starts_with('"') && title.ends_with('"'))
+                    || (title.starts_with('\'') && title.ends_with('\''))
+                {
+                    &title[1..title.len() - 1]
+                } else {
+                    title
+                };
+
+                return Some(title.to_owned());
+            }
+        }
+    }
+
+    // Fallback: use the first level-1 Markdown heading.
+    let file = fs::File::open(path).ok()?;
+    let reader = io::BufReader::new(file);
+
+    for line in reader.lines() {
+        let line = line.ok()?;
+        let line = line.trim();
+
+        if let Some(title) = line.strip_prefix("# ") {
+            let title = title.trim();
+
+            if !title.is_empty() {
+                return Some(title.to_owned());
+            }
+        }
+    }
+
+    None
+}
+
+
+// Recursively scan:
+//
+// $ZK_NOTEBOOK_DIR/todo/
+//     staging/
+//     doing/
+//     done/
+//
+// and build:
+//
+// note title -> state
+//
+// This is intentionally done once when the proxy starts.
+fn build_task_states() -> HashMap<String, String> {
+    let Some(notebook_dir) = env::var_os("ZK_NOTEBOOK_DIR") else {
+        eprintln!("zk-lsp-helix: ZK_NOTEBOOK_DIR is not set");
+        return HashMap::new();
+    };
+
+    let todo_dir = PathBuf::from(notebook_dir).join("todo");
+
+    // eprintln!(
+    //     "zk-lsp-helix: notebook_dir = {}",
+    //     PathBuf::from(&notebook_dir).display()
+    // );
+
+    eprintln!(
+        "zk-lsp-helix: todo_dir = {}",
+        todo_dir.display()
+    );
+
+
+    if !todo_dir.is_dir() {
+        eprintln!(
+            "zk-lsp-helix: task directory does not exist: {}",
+            todo_dir.display()
+        );
+        return HashMap::new();
+    }
+
+    let mut states = HashMap::new();
+
+    // Every immediate child of `todo` is a state.
+    //
+    // todo/
+    // ├── staging/       -> staging
+    // ├── doing/         -> doing
+    // ├── done/          -> done
+    // └── blocked/       -> blocked
+    //
+    // Each state directory is then traversed recursively.
+    let Ok(entries) = fs::read_dir(&todo_dir) else {
+        eprintln!(
+            "zk-lsp-helix: failed to read {}",
+            todo_dir.display()
+        );
+        return states;
+    };
+
+    for entry in entries.flatten() {
+        let state_dir = entry.path();
+
+        if !state_dir.is_dir() {
+            continue;
+        }
+
+        let Some(state) = state_dir.file_name().and_then(|name| name.to_str()) else {
+            continue;
+        };
+
+        scan_task_directory(&state_dir, state, &mut states);
+    }
+
+    eprintln!(
+        "zk-lsp-helix: indexed {} task titles",
+        states.len()
+    );
+
+    states
+}
+
+fn scan_task_directory(
+    directory: &Path,
+    state: &str,
+    states: &mut HashMap<String, String>,
+) {
+    let Ok(entries) = fs::read_dir(directory) else {
+        return;
+    };
+
+    for entry in entries.flatten() {
+        let path = entry.path();
+
+        if path.is_dir() {
+            // Keep the original state while traversing deeper.
+            //
+            // For example:
+            //
+            // todo/doing/someday/task.md
+            //      ^^^^^
+            //      state
+            scan_task_directory(&path, state, states);
+            continue;
+        }
+
+        if path.extension().and_then(|ext| ext.to_str()) != Some("md") {
+            continue;
+        }
+
+        if let Some(title) = extract_title(&path) {
+            states.insert(title, state.to_owned());
+        }
+    }
+}
+
+fn rewrite_diagnostics(message: &mut Value, states: &TaskStates) {
+
+
+    let Some(params) = message.get_mut("params") else {
+        return;
+    };
+
+    let Some(diagnostics) = params
+        .get_mut("diagnostics")
+        .and_then(Value::as_array_mut)
+    else {
+        return;
+    };
+
+    for diagnostic in diagnostics {
+        let Some(object) = diagnostic.as_object_mut() else {
+            continue;
+        };
+
+        let Some(title) = object
+            .get("message")
+            .and_then(Value::as_str)
+        else {
+            continue;
+        };
+
+        let Some(state) = states.get(title) else {
+            continue;
+        };
+
+        object.insert(
+            "message".to_owned(),
+            Value::String(format!("{state}: {title}")),
+        );
+    }
+}
+
 fn client_to_zk(
     mut zk_stdin: impl Write + Send + 'static,
     requests: Requests,
@@ -162,6 +391,7 @@ fn client_to_zk(
 fn zk_to_client(
     mut zk_stdout: impl BufRead,
     requests: Requests,
+    task_states: TaskStates,
 ) -> io::Result<()> {
     let stdout = io::stdout();
     let mut writer = stdout.lock();
@@ -171,6 +401,16 @@ fn zk_to_client(
             return Ok(());
         };
 
+        // Notifications from zk don't have an id.
+        if message.get("id").is_none() {
+            if message.get("method").and_then(Value::as_str)
+                == Some("textDocument/publishDiagnostics")
+            {
+                rewrite_diagnostics(&mut message, &task_states);
+            }
+        }
+
+        // Responses to requests.
         if let Some(id) = message.get("id") {
             let is_response = message.get("method").is_none();
 
@@ -196,6 +436,9 @@ fn zk_to_client(
 }
 
 fn main() -> io::Result<()> {
+    // Build this exactly once for the lifetime of this LSP process.
+    let task_states = Arc::new(build_task_states());
+
     let mut zk = Command::new("zk")
         .arg("lsp")
         .stdin(Stdio::piped())
@@ -209,6 +452,7 @@ fn main() -> io::Result<()> {
     let requests: Requests = Arc::new(Mutex::new(HashMap::new()));
 
     let requests_from_client = Arc::clone(&requests);
+
     let client_thread = thread::spawn(move || {
         if let Err(error) = client_to_zk(zk_stdin, requests_from_client) {
             eprintln!("zk-lsp-helix: client -> zk: {error}");
@@ -216,10 +460,14 @@ fn main() -> io::Result<()> {
     });
 
     let requests_from_zk = Arc::clone(&requests);
+    let task_states_from_zk = Arc::clone(&task_states);
+
     let server_thread = thread::spawn(move || {
         let reader = io::BufReader::new(zk_stdout);
 
-        if let Err(error) = zk_to_client(reader, requests_from_zk) {
+        if let Err(error) =
+            zk_to_client(reader, requests_from_zk, task_states_from_zk)
+        {
             eprintln!("zk-lsp-helix: zk -> client: {error}");
         }
     });

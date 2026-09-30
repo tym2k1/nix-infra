@@ -18,6 +18,13 @@
           lockFile = ./src/Cargo.lock;
         };
 
+        nativeBuildInputs = [ pkgs.makeWrapper ];
+
+        postInstall = ''
+          wrapProgram $out/bin/zk-lsp-wrapper \
+            --run 'export ZK_NOTEBOOK_DIR="$HOME/Notes"'
+        '';
+
         meta = {
           description = "LSP wrapper for zk to not use relative paths in wikilinks";
           mainProgram = "zk-lsp-wrapper";

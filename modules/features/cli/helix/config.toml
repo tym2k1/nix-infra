@@ -6,6 +6,7 @@ default-yank-register = "+"
 mouse = false
 trim-final-newlines = true
 trim-trailing-whitespace = true
+bufferline = "multiple"
 
 [editor.indent-guides]
 render = true

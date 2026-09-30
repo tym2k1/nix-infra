@@ -212,7 +212,7 @@ fn extract_title(path: &Path) -> Option<String> {
 
 // Recursively scan:
 //
-// $ZK_NOTEBOOK_DIR/todo/
+// $ZK_NOTEBOOK_DIR/ZK_NOTEBOOK_TASK_DIR_NAME/
 //     staging/
 //     doing/
 //     done/
@@ -228,7 +228,12 @@ fn build_task_states() -> HashMap<String, String> {
         return HashMap::new();
     };
 
-    let todo_dir = PathBuf::from(notebook_dir).join("todo");
+    let Some(task_subdir_name) = env::var_os("ZK_NOTEBOOK_TASK_DIR_NAME") else {
+        eprintln!("zk-lsp-helix: ZK_NOTEBOOK_TASK_DIR_NAME is not set");
+        return HashMap::new();
+    };
+
+    let task_dir = PathBuf::from(notebook_dir).join(task_subdir_name);
 
     // eprintln!(
     //     "zk-lsp-helix: notebook_dir = {}",
@@ -236,34 +241,34 @@ fn build_task_states() -> HashMap<String, String> {
     // );
 
     eprintln!(
-        "zk-lsp-helix: todo_dir = {}",
-        todo_dir.display()
+        "zk-lsp-helix: task_dir = {}",
+        task_dir.display()
     );
 
 
-    if !todo_dir.is_dir() {
+    if !task_dir.is_dir() {
         eprintln!(
             "zk-lsp-helix: task directory does not exist: {}",
-            todo_dir.display()
+            task_dir.display()
         );
         return HashMap::new();
     }
 
     let mut states = HashMap::new();
 
-    // Every immediate child of `todo` is a state.
+    // Every immediate child of `ZK_NOTEBOOK_TASK_DIR_NAME` is a state.
     //
-    // todo/
+    // ZK_NOTEBOOK_TASK_DIR_NAME/
     // ├── staging/       -> staging
     // ├── doing/         -> doing
     // ├── done/          -> done
     // └── blocked/       -> blocked
     //
     // Each state directory is then traversed recursively.
-    let Ok(entries) = fs::read_dir(&todo_dir) else {
+    let Ok(entries) = fs::read_dir(&task_dir) else {
         eprintln!(
             "zk-lsp-helix: failed to read {}",
-            todo_dir.display()
+            task_dir.display()
         );
         return states;
     };
@@ -307,7 +312,7 @@ fn scan_task_directory(
             //
             // For example:
             //
-            // todo/doing/someday/task.md
+            // ZK_NOTEBOOK_TASK_DIR_NAME/doing/someday/task.md
             //      ^^^^^
             //      state
             scan_task_directory(&path, state, states);

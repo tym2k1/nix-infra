@@ -22,7 +22,8 @@
 
         postInstall = ''
           wrapProgram $out/bin/zk-lsp-wrapper \
-            --run 'export ZK_NOTEBOOK_DIR="$HOME/Notes"'
+            --run 'export ZK_NOTEBOOK_DIR="$HOME/Notes"' \
+            --set ZK_NOTEBOOK_TASK_DIR_NAME todo
         '';
 
         meta = {

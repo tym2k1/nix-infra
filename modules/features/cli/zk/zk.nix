@@ -12,7 +12,7 @@ perSystem = { pkgs, self', ... }: let
 
     '';
 
-  todoNoteTemplate = pkgs.writeText "daily.md" ''
+  todoNoteTemplate = pkgs.writeText "todo.md" ''
     # TODO
     #todo
     '';

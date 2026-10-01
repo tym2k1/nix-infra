@@ -1,9 +1,11 @@
 use std::collections::BTreeMap;
-use std::fs::OpenOptions;
+use std::fs::{self, OpenOptions};
 use std::io;
 use std::os::fd::AsFd;
+use std::path::PathBuf;
+use std::process::Command;
 
-use color_eyre::eyre::{eyre, Result};
+use color_eyre::eyre::{eyre, Context, Result};
 use crossterm::event::{self, KeyCode, KeyModifiers};
 use nix::unistd::{dup, dup2_stdin, dup2_stdout};
 use ratatui::layout::{Constraint, Layout, Rect};
@@ -27,6 +29,89 @@ struct NotePreview {
     raw_content: String,
 }
 
+struct NoteRepository {
+    daily_dir: PathBuf,
+}
+
+impl NoteRepository {
+    fn new() -> Result<Self> {
+        let notebook_dir = std::env::var("ZK_NOTEBOOK_DIR")
+            .context("ZK_NOTEBOOK_DIR is not set")?;
+
+        Ok(Self {
+            daily_dir: PathBuf::from(notebook_dir).join("journal/daily"),
+        })
+    }
+
+    fn create(&self, date: Date) -> Result<NotePreview> {
+        let date = date
+            .to_string();
+        let args = [
+            "new".to_string(),
+            "--dry-run".to_string(),
+            "--extra".to_string(),
+            format!("date={date}"),
+            self.daily_dir.display().to_string(),
+        ];
+
+        eprintln!("running: zk {}", args.join(" "));
+
+        let output = Command::new("zk")
+            .args(&args)
+            .output()
+            .context("failed to run zk")?;
+
+        if !output.status.success() {
+            return Err(eyre!(
+                "zk new --dry-run failed: {}",
+                String::from_utf8_lossy(&output.stderr).trim()
+            ));
+        }
+
+        // let output = Command::new("zk")
+        //     .arg("new")
+        //     .arg("--dry-run")
+        //     .arg(format!("--extra='date'='{date}'"))
+        //     .arg(&self.daily_dir)
+        //     .output()
+        //     .context("failed to run zk")?;
+
+        // if !output.status.success() {
+        //     return Err(eyre!(
+        //         "zk new --dry-run failed: {}",
+        //         String::from_utf8_lossy(&output.stderr).trim()
+        //     ));
+        // }
+
+        let path = String::from_utf8(output.stderr)
+            .context("zk returned a non-UTF-8 note path")?
+            .trim()
+            .to_owned();
+
+        if path.is_empty() {
+            return Err(eyre!("zk did not return a note path on stderr"));
+        }
+
+        let raw_content = String::from_utf8(output.stdout)
+            .context("zk returned non-UTF-8 note content")?;
+
+        let path = PathBuf::from(path);
+        let path = if path.is_absolute() {
+            path
+        } else {
+            self.daily_dir.join(path)
+        };
+
+        fs::write(&path, &raw_content)
+            .with_context(|| format!("failed to create note {}", path.display()))?;
+
+        Ok(NotePreview {
+            path: path.to_string_lossy().into_owned(),
+            raw_content,
+        })
+    }
+}
+
 struct App {
     notes: BTreeMap<Date, NotePreview>,
     selected_date: Date,
@@ -34,6 +119,7 @@ struct App {
     calendar_columns: u16,
     calendar_rows: u16,
     picked_path: Option<String>,
+    repository: NoteRepository,
 }
 
 fn main() -> Result<()> {
@@ -58,11 +144,14 @@ fn main() -> Result<()> {
 
     let mut app = App::new(notes)?;
 
-    ratatui::run(|terminal| app.run(terminal))?;
+    // Make sure stdout is restored even if the TUI returns an error.
+    let run_result = ratatui::run(|terminal| app.run(terminal));
 
     // Restore the original stdout so the selected path goes down
     // the pipeline rather than to the terminal.
     dup2_stdout(&stdout)?;
+
+    run_result?;
 
     // Ratatui has restored the terminal at this point.
     if let Some(path) = app.picked_path {
@@ -102,6 +191,7 @@ impl App {
             calendar_columns: 1,
             calendar_rows: 1,
             picked_path: None,
+            repository: NoteRepository::new()?,
         })
     }
 
@@ -117,9 +207,19 @@ impl App {
                     }
 
                     KeyCode::Enter => {
-                        if let Some(note) = self.notes.get(&self.selected_date) {
-                            self.picked_path = Some(note.path.clone());
-                            return Ok(());
+                        // Enter either opens the existing note or creates
+                        // a new note for the selected date.
+                        match self.resolve_selected_note() {
+                            Ok(path) => {
+                                self.picked_path = Some(path);
+                                return Ok(());
+                            }
+                            Err(error) => {
+                                // The current TUI has no error overlay, so
+                                // propagate the error and let main restore
+                                // stdout before reporting it.
+                                return Err(io::Error::other(error));
+                            }
                         }
                     }
 
@@ -146,6 +246,20 @@ impl App {
                 }
             }
         }
+    }
+
+    fn resolve_selected_note(&mut self) -> Result<String> {
+        if let Some(note) = self.notes.get(&self.selected_date) {
+            return Ok(note.path.clone());
+        }
+
+        let note = self.repository.create(self.selected_date)?;
+        let path = note.path.clone();
+
+        // Keep the in-memory model consistent after creation.
+        self.notes.insert(self.selected_date, note);
+
+        Ok(path)
     }
 
     fn move_days(&mut self, days: i64, viewport_step: i32) {

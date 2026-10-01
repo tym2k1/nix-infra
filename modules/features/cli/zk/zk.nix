@@ -6,7 +6,7 @@
   };
 perSystem = { pkgs, self', ... }: let
   dailyNoteTemplate = pkgs.writeText "daily.md" ''
-    # {{format-date now "full"}}
+    # {{format-date (date extra.date) "full"}}
     #journal #daily
 
 
@@ -74,8 +74,11 @@ perSystem = { pkgs, self', ... }: let
     [group.journal]
     paths = ["journal/daily"]
 
+    [group.journal.extra]
+    date = "now"
+
     [group.journal.note]
-    filename = "{{format-date now}}"
+    filename = "{{format-date (date extra.date)}}"
     template = "daily.md"
 
     [group.todo]
@@ -118,6 +121,8 @@ perSystem = { pkgs, self', ... }: let
     # new = 't=$(mktemp); hx "$(zk new --dry-run "$@" 2>&1 >"$t" | tr -d "\r")" <"$t"; rm -f "$t"'
 
     # Daily Journal note
+    # By default opens today
+    # To open different day use `zk calendar`
     daily = 'zk new --no-input "$ZK_NOTEBOOK_DIR/journal/daily"'
 
     todo = 'zk new "$ZK_NOTEBOOK_DIR/todo" -t "$*"'

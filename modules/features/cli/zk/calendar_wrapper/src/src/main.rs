@@ -15,7 +15,7 @@ use ratatui::widgets::calendar::{CalendarEventStore, Monthly};
 use ratatui::widgets::{Block, Borders, Clear, Paragraph, Wrap};
 use ratatui::{DefaultTerminal, Frame};
 use serde::Deserialize;
-use time::{Date, Duration, Month};
+use time::{Date, Duration, Month, OffsetDateTime, UtcOffset};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -171,16 +171,16 @@ impl App {
             );
         }
 
-        let selected_date = notes_by_date
-            .keys()
-            .next_back()
-            .copied()
-            .ok_or_else(|| eyre!("stdin contained no daily notes"))?;
+         // Always start with today selected, regardless of whether a note
+         // exists for today or whether notes exist in the future.
+         let selected_date = local_today();
+         let calendar_start = month_start(selected_date);
+
 
         Ok(Self {
             notes: notes_by_date,
             selected_date,
-            calendar_start: selected_date,
+            calendar_start,
             calendar_columns: 1,
             calendar_rows: 1,
             picked_path: None,
@@ -331,18 +331,28 @@ impl App {
             .fg(Color::Green)
             .add_modifier(Modifier::BOLD);
 
+         const TODAY: Style = Style::new()
+             .fg(Color::Black)
+             .bg(Color::Yellow)
+             .add_modifier(Modifier::BOLD);
+
         const SELECTED: Style = Style::new()
             .fg(Color::White)
             .bg(Color::Red)
             .add_modifier(Modifier::BOLD);
 
-        let mut events = CalendarEventStore::today(Style::default());
+        let mut events = CalendarEventStore::default();
 
         for date in self.notes.keys() {
             events.add(*date, NOTE);
         }
 
-        // Add this last so the cursor style takes precedence.
+         // Add today after note events so it remains visibly different even
+         // when today already has a note.
+         events.add(local_today(), TODAY);
+
+         // Add the selection last so the red cursor takes precedence over
+         // both note and today styles.
         events.add(self.selected_date, SELECTED);
 
         events
@@ -474,6 +484,14 @@ impl App {
             area,
         );
     }
+}
+
+fn local_today() -> Date {
+    let now = OffsetDateTime::now_utc();
+
+    UtcOffset::current_local_offset()
+        .map(|offset| now.to_offset(offset).date())
+        .unwrap_or_else(|_| now.date())
 }
 
 fn centered_rect_fixed(width: u16, height: u16, area: Rect) -> Rect {

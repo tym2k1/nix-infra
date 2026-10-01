@@ -233,7 +233,7 @@ impl App {
                         return Ok(());
                     }
 
-                    KeyCode::Enter => {
+                    KeyCode::Enter | KeyCode::Char('e') => {
                         // Existing notes are opened immediately.
                         if let Some(note) = self.notes.get(&self.selected_date) {
                             self.picked_path = Some(note.path.clone());

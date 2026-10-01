@@ -419,30 +419,6 @@ impl App {
         }
     }
 
-    // fn render_confirmation_popup(&self, frame: &mut Frame) {
-    //     let area = centered_rect(40, 20, frame.area());
-
-    //     let message = format!(
-    //         "No note exists for {}.\nCreate a new note?\n\
-    //          [Enter/y] Yes    [Esc/n] No",
-    //         self.selected_date
-    //     );
-
-    //     frame.render_widget(Clear, area);
-
-    //     frame.render_widget(
-    //         Paragraph::new(message)
-    //             .alignment(Alignment::Center)
-    //             .wrap(Wrap { trim: false })
-    //             .block(
-    //                 Block::bordered()
-    //                     .title(" Create Note ")
-    //                     .borders(Borders::ALL)
-    //                     .style(Style::default()),
-    //             ),
-    //         area,
-    //     );
-    // }
     fn render_confirmation_popup(&self, frame: &mut Frame) {
         let message = format!(
             "No note exists for {}.\nCreate a new note?\n\

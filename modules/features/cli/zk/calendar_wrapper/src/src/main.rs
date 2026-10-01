@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::env;
 use std::fs::{self, OpenOptions};
 use std::io;
 use std::os::fd::AsFd;
@@ -8,10 +9,10 @@ use std::process::Command;
 use color_eyre::eyre::{eyre, Context, Result};
 use crossterm::event::{self, KeyCode, KeyModifiers};
 use nix::unistd::{dup, dup2_stdin, dup2_stdout};
-use ratatui::layout::{Constraint, Layout, Rect};
+use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::widgets::calendar::{CalendarEventStore, Monthly};
-use ratatui::widgets::{Block, Paragraph, Wrap};
+use ratatui::widgets::{Block, Borders, Clear, Paragraph, Wrap};
 use ratatui::{DefaultTerminal, Frame};
 use serde::Deserialize;
 use time::{Date, Duration, Month};
@@ -35,7 +36,7 @@ struct NoteRepository {
 
 impl NoteRepository {
     fn new() -> Result<Self> {
-        let notebook_dir = std::env::var("ZK_NOTEBOOK_DIR")
+        let notebook_dir = env::var("ZK_NOTEBOOK_DIR")
             .context("ZK_NOTEBOOK_DIR is not set")?;
 
         Ok(Self {
@@ -44,8 +45,8 @@ impl NoteRepository {
     }
 
     fn create(&self, date: Date) -> Result<NotePreview> {
-        let date = date
-            .to_string();
+        let date = date.to_string();
+
         let args = [
             "new".to_string(),
             "--dry-run".to_string(),
@@ -68,21 +69,6 @@ impl NoteRepository {
             ));
         }
 
-        // let output = Command::new("zk")
-        //     .arg("new")
-        //     .arg("--dry-run")
-        //     .arg(format!("--extra='date'='{date}'"))
-        //     .arg(&self.daily_dir)
-        //     .output()
-        //     .context("failed to run zk")?;
-
-        // if !output.status.success() {
-        //     return Err(eyre!(
-        //         "zk new --dry-run failed: {}",
-        //         String::from_utf8_lossy(&output.stderr).trim()
-        //     ));
-        // }
-
         let path = String::from_utf8(output.stderr)
             .context("zk returned a non-UTF-8 note path")?
             .trim()
@@ -96,6 +82,7 @@ impl NoteRepository {
             .context("zk returned non-UTF-8 note content")?;
 
         let path = PathBuf::from(path);
+
         let path = if path.is_absolute() {
             path
         } else {
@@ -120,10 +107,16 @@ struct App {
     calendar_rows: u16,
     picked_path: Option<String>,
     repository: NoteRepository,
+    confirmation_prompt: bool,
+    confirm_create: bool,
 }
 
 fn main() -> Result<()> {
     color_eyre::install()?;
+
+    let no_confirmation_prompt = env::args()
+        .skip(1)
+        .any(|arg| arg == "--no-confirmation-prompt");
 
     // Read the complete JSON array before starting the TUI.
     let notes: Vec<Note> = {
@@ -142,7 +135,7 @@ fn main() -> Result<()> {
     dup2_stdin(&tty)?;
     dup2_stdout(&tty)?;
 
-    let mut app = App::new(notes)?;
+    let mut app = App::new(notes, !no_confirmation_prompt)?;
 
     // Make sure stdout is restored even if the TUI returns an error.
     let run_result = ratatui::run(|terminal| app.run(terminal));
@@ -162,7 +155,7 @@ fn main() -> Result<()> {
 }
 
 impl App {
-    fn new(notes: Vec<Note>) -> Result<Self> {
+    fn new(notes: Vec<Note>, confirmation_prompt: bool) -> Result<Self> {
         let mut notes_by_date = BTreeMap::new();
 
         for note in notes {
@@ -192,6 +185,8 @@ impl App {
             calendar_rows: 1,
             picked_path: None,
             repository: NoteRepository::new()?,
+            confirmation_prompt,
+            confirm_create: false,
         })
     }
 
@@ -200,6 +195,38 @@ impl App {
             terminal.draw(|frame| self.render(frame))?;
 
             if let Some(key) = event::read()?.as_key_press_event() {
+                if self.confirm_create {
+                    match key.code {
+                        KeyCode::Enter | KeyCode::Char('y') => {
+                            self.confirm_create = false;
+
+                            match self.create_selected_note() {
+                                Ok(path) => {
+                                    self.picked_path = Some(path);
+                                    return Ok(());
+                                }
+                                Err(error) => {
+                                    return Err(io::Error::other(error));
+                                }
+                            }
+                        }
+
+                        KeyCode::Esc | KeyCode::Char('n') | KeyCode::Char('q') => {
+                            self.confirm_create = false;
+                        }
+
+                        KeyCode::Char('c')
+                            if key.modifiers.contains(KeyModifiers::CONTROL) =>
+                        {
+                            return Ok(());
+                        }
+
+                        _ => {}
+                    }
+
+                    continue;
+                }
+
                 match key.code {
                     KeyCode::Char('q') | KeyCode::Esc => return Ok(()),
                     KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
@@ -207,9 +234,19 @@ impl App {
                     }
 
                     KeyCode::Enter => {
-                        // Enter either opens the existing note or creates
-                        // a new note for the selected date.
-                        match self.resolve_selected_note() {
+                        // Existing notes are opened immediately.
+                        if let Some(note) = self.notes.get(&self.selected_date) {
+                            self.picked_path = Some(note.path.clone());
+                            return Ok(());
+                        }
+
+                        // Missing notes optionally require confirmation.
+                        if self.confirmation_prompt {
+                            self.confirm_create = true;
+                            continue;
+                        }
+
+                        match self.create_selected_note() {
                             Ok(path) => {
                                 self.picked_path = Some(path);
                                 return Ok(());
@@ -248,11 +285,7 @@ impl App {
         }
     }
 
-    fn resolve_selected_note(&mut self) -> Result<String> {
-        if let Some(note) = self.notes.get(&self.selected_date) {
-            return Ok(note.path.clone());
-        }
-
+    fn create_selected_note(&mut self) -> Result<String> {
         let note = self.repository.create(self.selected_date)?;
         let path = note.path.clone();
 
@@ -380,6 +413,102 @@ impl App {
                 .wrap(Wrap { trim: false }),
             preview_area,
         );
+
+        if self.confirm_create {
+            self.render_confirmation_popup(frame);
+        }
+    }
+
+    // fn render_confirmation_popup(&self, frame: &mut Frame) {
+    //     let area = centered_rect(40, 20, frame.area());
+
+    //     let message = format!(
+    //         "No note exists for {}.\nCreate a new note?\n\
+    //          [Enter/y] Yes    [Esc/n] No",
+    //         self.selected_date
+    //     );
+
+    //     frame.render_widget(Clear, area);
+
+    //     frame.render_widget(
+    //         Paragraph::new(message)
+    //             .alignment(Alignment::Center)
+    //             .wrap(Wrap { trim: false })
+    //             .block(
+    //                 Block::bordered()
+    //                     .title(" Create Note ")
+    //                     .borders(Borders::ALL)
+    //                     .style(Style::default()),
+    //             ),
+    //         area,
+    //     );
+    // }
+    fn render_confirmation_popup(&self, frame: &mut Frame) {
+        let message = format!(
+            "No note exists for {}.\nCreate a new note?\n\
+             [Enter/y] Yes    [Esc/n] No",
+            self.selected_date
+        );
+
+        let lines: Vec<&str> = message.lines().collect();
+
+        // Account for the popup's left/right borders and a little horizontal
+        // padding so the text isn't touching the border.
+        let content_width = lines.iter().map(|line| line.chars().count()).max().unwrap_or(0);
+
+        let popup_width = (content_width as u16 + 4)
+            .max(40)
+            .min(frame.area().width);
+
+        // Account for:
+        // - top/bottom borders
+        // - 3 lines of text
+        // - one line of vertical breathing room
+        let content_height = lines.len() as u16;
+        let popup_height = (content_height + 4)
+            .max(7)
+            .min(frame.area().height);
+
+        let area = centered_rect_fixed(popup_width, popup_height, frame.area());
+
+        frame.render_widget(Clear, area);
+
+        // Center the text vertically by adding blank lines above it.
+        let inner_height = area.height.saturating_sub(2);
+        let top_padding = inner_height
+            .saturating_sub(content_height)
+            / 2;
+
+        let message = format!(
+            "{}{}",
+            "\n".repeat(top_padding as usize),
+            message
+        );
+
+        frame.render_widget(
+            Paragraph::new(message)
+                .alignment(Alignment::Center)
+                .wrap(Wrap { trim: false })
+                .block(
+                    Block::bordered()
+                        .title(" Create Note ")
+                        .borders(Borders::ALL)
+                        .style(Style::default()),
+                ),
+            area,
+        );
+    }
+}
+
+fn centered_rect_fixed(width: u16, height: u16, area: Rect) -> Rect {
+    let width = width.min(area.width);
+    let height = height.min(area.height);
+
+    Rect {
+        x: area.x + (area.width - width) / 2,
+        y: area.y + (area.height - height) / 2,
+        width,
+        height,
     }
 }
 

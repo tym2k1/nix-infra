@@ -9,6 +9,7 @@ config.hide_tab_bar_if_only_one_tab = true
 config.window_decorations = "NONE"
 config.front_end = "WebGpu"
 config.use_fancy_tab_bar = true
+config.font_size = 10.0
 --
 
 -- Finally, return the configuration to wezterm:

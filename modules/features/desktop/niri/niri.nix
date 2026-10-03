@@ -40,24 +40,41 @@
     };
   };
 
-  perSystem = { pkgs, lib, self', ... }: {
-    packages.myNiri = inputs.wrapper-modules.wrappers.niri.wrap {
-      inherit pkgs;
-      "config.kdl".content =
-      ''
-        spawn-at-startup "${(lib.getExe self'.packages.myNoctalia)}"
-        xwayland-satellite { path "${lib.getExe pkgs.xwayland-satellite}"; }
+  perSystem = { pkgs, lib, self', ... }:
+    let
+    config = pkgs.writeText "niri-config.kdl" ''
+      xwayland-satellite {
+        path "${lib.getExe pkgs.xwayland-satellite}"
+      }
 
-        binds {
-        Mod+Return { spawn "${lib.getExe self'.packages.myWezterm}"; }
-        Mod+S { spawn-sh "${lib.getExe self'.packages.myNoctalia} ipc call launcher toggle"; }
-        Mod+L { spawn-sh "${lib.getExe self'.packages.myNoctalia} ipc call lockScreen lock"; }
-        Mod+V { spawn-sh "${lib.getExe self'.packages.myNoctalia} ipc call launcher clipboard"; }
-        Mod+M repeat=false { spawn-sh "${pkgs.wl-mirror}/bin/wl-mirror $(niri msg --json focused-output | ${pkgs.jq}/bin/jq -r .name)"; }
-        ${builtins.readFile ./binds.kdl}
+      binds {
+        Mod+Return {
+          spawn "${lib.getExe self'.packages.myWezterm}"
         }
-        ${builtins.readFile ./niri-config.kdl}
-      '';
+
+        Mod+M repeat=false {
+          spawn-sh "${pkgs.wl-mirror}/bin/wl-mirror $(niri msg --json focused-output | ${pkgs.jq}/bin/jq -r .name)"
+        }
+
+        ${builtins.readFile ./binds.kdl}
+      }
+
+      ${builtins.readFile ./niri-config.kdl}
+    '';
+  in {
+    packages.myNiri = pkgs.symlinkJoin {
+      name = "niri";
+
+      paths = [ pkgs.niri ];
+
+      nativeBuildInputs = [ pkgs.makeWrapper ];
+
+      postBuild = ''
+        wrapProgram $out/bin/niri \
+          --set NIRI_CONFIG "${config}"
+         '';
+
+      passthru.providedSessions = [ "niri" ];
     };
   };
 }

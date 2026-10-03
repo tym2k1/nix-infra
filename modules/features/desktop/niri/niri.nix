@@ -11,7 +11,7 @@
        useTextGreeter = true;
        settings = {
          default_session = {
-           command = "${pkgs.tuigreet}/bin/tuigreet --time --cmd niri";
+           command = "${pkgs.tuigreet}/bin/tuigreet --time --battery --background matrix --cmd niri-session";
            user = "greeter";
          };
        };
@@ -43,6 +43,7 @@
   perSystem = { pkgs, lib, self', ... }:
     let
     config = pkgs.writeText "niri-config.kdl" ''
+      spawn-at-startup "${(lib.getExe self'.packages.myNoctalia)}"
       xwayland-satellite {
         path "${lib.getExe pkgs.xwayland-satellite}"
       }
@@ -71,6 +72,8 @@
 
       postBuild = ''
         wrapProgram $out/bin/niri \
+          --set NIRI_CONFIG "${config}"
+        wrapProgram $out/bin/niri-session \
           --set NIRI_CONFIG "${config}"
          '';
 

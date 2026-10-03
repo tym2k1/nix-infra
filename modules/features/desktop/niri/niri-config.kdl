@@ -17,14 +17,14 @@ cursor {
 output "HDMI-A-1" {
     scale 1
     layout {
-        background-color "#000000"
+        background-color "#808080"
     }
 }
 
 output "Virtual-1" {
     scale 1
     layout {
-        background-color "#000000"
+        background-color "#808080"
     }
 }
 
@@ -58,7 +58,7 @@ output "eDP-1" {
     // automatically.
     position x=1280 y=0
     layout {
-        background-color "#000000"
+        background-color "#808080"
     }
 }
 

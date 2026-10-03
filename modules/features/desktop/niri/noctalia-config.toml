@@ -1,0 +1,369 @@
+[audio]
+enable_sounds = false
+
+[bar.default]
+center = [ "clock", "date" ]
+end = [
+    "notifications",
+    "network",
+    "bluetooth",
+    "output_volume",
+    "input_volume",
+    "brightness",
+    "battery",
+    "control-center"
+]
+margin_ends = 0
+start = [ "workspaces" ]
+thickness = 25
+
+    [bar.default.dead_zone.actions]
+    right = "none"
+
+[calendar]
+
+[control_center]
+hidden_tabs = [ "media", "calendar", "screen-time" ]
+show_shortcut_labels = false
+sidebar_section = "none"
+
+    [control_center.calendar]
+    show_week_numbers = true
+
+    [[control_center.shortcuts]]
+    type = "bluetooth"
+
+    [[control_center.shortcuts]]
+    type = "wifi"
+
+    [[control_center.shortcuts]]
+    type = "caffeine"
+
+[desktop_widgets]
+enabled = false
+schema_version = 2
+widget_order = []
+
+    [desktop_widgets.grid]
+    cell_size = 16
+    major_interval = 4
+    visible = true
+
+    [desktop_widgets.widget]
+
+[idle]
+behavior_order = [ "lock", "screen-off", "lock-and-suspend" ]
+
+    [idle.behavior.lock]
+    action = "lock"
+    enabled = true
+    timeout = 600.0
+
+    [idle.behavior.lock-and-suspend]
+    action = "lock_and_suspend"
+    enabled = true
+    timeout = 900.0
+
+    [idle.behavior.screen-off]
+    action = "screen_off"
+    enabled = true
+    timeout = 660.0
+
+[lockscreen]
+blurred_desktop = true
+edge_smoothness = 0.0
+fingerprint = false
+transition = [ "disc" ]
+transition_duration = 500
+
+[lockscreen_widgets]
+enabled = true
+schema_version = 2
+widget_order = [
+    "lockscreen-widget-0000000000000004",
+    "lockscreen-login-box@eDP-1",
+    "lockscreen-widget-0000000000000001",
+    "lockscreen-widget-0000000000000002",
+    "lockscreen-widget-0000000000000006",
+    "lockscreen-widget-0000000000000007"
+]
+
+    [lockscreen_widgets.grid]
+    cell_size = 24
+    major_interval = 4
+    visible = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@eDP-1"]
+    box_height = 128.0
+    box_width = 792.0
+    cx = 960.0
+    cy = 860.0
+    output = "eDP-1"
+    placement_height = 1080.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@eDP-1".settings]
+        background_color = "surface_variant"
+        background_opacity = 0.0
+        background_radius = 20.0
+        center_password_text = true
+        input_opacity = 1.0
+        input_radius = 20.0
+        layout = "regular"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = false
+        show_media = false
+        show_session_buttons = true
+        show_unlock_hint = false
+        show_weather = false
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000001]
+    box_height = 192.0
+    box_width = 384.0
+    cx = 960.0
+    cy = 228.0
+    output = "eDP-1"
+    placement_height = 1080.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "clock"
+
+        [lockscreen_widgets.widget.lockscreen-widget-0000000000000001.settings]
+        background_opacity = 0.0
+        background_padding = 0
+        format = "{:%H:%M:%S}"
+        shadow = true
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000002]
+    box_height = 216.0
+    box_width = 792.0
+    cx = 960.0
+    cy = 668.0
+    output = "eDP-1"
+    placement_height = 1080.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "media_player"
+
+        [lockscreen_widgets.widget.lockscreen-widget-0000000000000002.settings]
+        background_opacity = 0.0
+        hide_when_no_media = true
+        layout = "horizontal"
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000004]
+    box_height = 1080.0
+    box_width = 552.0
+    cx = 276.0
+    cy = 540.0
+    output = "eDP-1"
+    placement_height = 1080.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "audio_visualizer"
+
+        [lockscreen_widgets.widget.lockscreen-widget-0000000000000004.settings]
+        background = false
+        bands = 40
+        centered = true
+        color_1 = "primary"
+        color_2 = "secondary"
+        mirrored = false
+        reversed = false
+        show_when_idle = false
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000006]
+    box_height = 1080.0
+    box_width = 552.0
+    cx = 1632.0
+    cy = 540.0
+    output = "eDP-1"
+    placement_height = 1080.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "audio_visualizer"
+
+        [lockscreen_widgets.widget.lockscreen-widget-0000000000000006.settings]
+        background = false
+        bands = 60
+        centered = true
+        color_1 = "secondary"
+        color_2 = "primary"
+        mirrored = false
+        reversed = true
+        show_when_idle = false
+
+    [lockscreen_widgets.widget.lockscreen-widget-0000000000000007]
+    box_height = 48.0
+    box_width = 336.0
+    cx = 951.0
+    cy = 315.0
+    output = "eDP-1"
+    placement_height = 1080.0
+    placement_width = 1920.0
+    rotation = 0.0
+    type = "clock"
+
+        [lockscreen_widgets.widget.lockscreen-widget-0000000000000007.settings]
+        background = false
+        clock_style = "digital"
+        format = "{:%x}"
+
+[nightlight]
+force = true
+
+[plugins]
+auto_update = "all"
+
+    [[plugins.source]]
+    kind = "git"
+    location = "https://github.com/noctalia-dev/official-plugins"
+    name = "official"
+
+    [[plugins.source]]
+    enabled = false
+    kind = "git"
+    location = "https://github.com/noctalia-dev/community-plugins"
+    name = "community"
+
+[shell]
+niri_overview_type_to_launch_enabled = true
+password_style = "random"
+time_format = "{:%H:%M:%S}"
+
+    [shell.launcher]
+    auto_paste = "off"
+    categories = false
+    compact = true
+    fetch_exchange_rates = false
+
+    [shell.panel]
+    clipboard_placement = "attached"
+    launcher_placement = "attached"
+    open_near_click_clipboard = true
+    open_near_click_control_center = true
+    open_near_click_launcher = true
+    open_near_click_wallpaper = true
+
+    [shell.screen_corners]
+    enabled = true
+    size = 25
+
+    [shell.session]
+    grid = false
+    grid_columns = 5
+    show_shortcuts = false
+
+    [shell.shadow]
+    direction = "down_right"
+
+[system.monitor]
+enabled = false
+
+[theme]
+community_palette = "Sway Classic"
+mode = "dark"
+pure_black_dark = false
+source = "wallpaper"
+wallpaper_scheme = "m3-rainbow"
+
+    [theme.templates]
+    builtin_ids = [ "gtk3", "gtk4", "niri", "qt" ]
+    enable_community_templates = false
+
+[wallpaper]
+directory = "@wallpaper-directory@"
+edge_smoothness = 0.0
+transition = [ "stripes" ]
+transition_duration = 500
+transition_on_startup = true
+
+    [wallpaper.automation]
+    enabled = true
+    interval_seconds = 300
+
+    [wallpaper.default]
+    path = "/home/tym2k1/Pictures/Wallpapers/johan_barthold_jongkind1.jpg"
+
+    [wallpaper.last]
+    path = "/home/tym2k1/Pictures/Wallpapers/johan_barthold_jongkind1.jpg"
+
+    [wallpaper.monitors.eDP-1]
+    path = "/home/tym2k1/Pictures/Wallpapers/johan_barthold_jongkind1.jpg"
+
+    [[wallpaper.favorite]]
+    path = "/home/tym2k1/Pictures/Wallpapers/jean_frederic_bazille1.jpg"
+
+    [[wallpaper.favorite]]
+    path = "/home/tym2k1/Pictures/Wallpapers/jacob_van_ruisadel1.jpg"
+
+    [[wallpaper.favorite]]
+    path = "/home/tym2k1/Pictures/Wallpapers/johan_barthold_jongkind1.jpg"
+
+    [[wallpaper.favorite]]
+    path = "/home/tym2k1/Pictures/Wallpapers/simon_denis3.jpg"
+
+    [[wallpaper.favorite]]
+    path = "/home/tym2k1/Pictures/Wallpapers/joseph_mallord_william_turner1.jpg"
+
+    [[wallpaper.favorite]]
+    path = "/home/tym2k1/Pictures/Wallpapers/simon_denis1.jpg"
+
+    [[wallpaper.favorite]]
+    path = "/home/tym2k1/Pictures/Wallpapers/simon_denis2.jpg"
+
+    [[wallpaper.favorite]]
+    path = "/home/tym2k1/Pictures/Wallpapers/francesco_guardi1.jpg"
+
+[weather]
+enabled = false
+
+[widget.battery]
+display_mode = "graphic"
+
+    [widget.battery.actions]
+    middle = "none"
+
+[widget.bluetooth.actions]
+middle = "none"
+
+[widget.brightness.actions]
+middle = "none"
+
+[widget.clock]
+anchor = true
+font_weight = 700
+format = "{:%H:%M:%S}"
+interactive = false
+
+[widget.control-center]
+glyph = "power"
+
+[widget.date]
+format = "- {:%x}"
+interactive = false
+
+[widget.input_volume.actions]
+middle = "none"
+
+[widget.network]
+show_label = false
+
+    [widget.network.actions]
+    middle = "none"
+    right = "none"
+
+[widget.notifications.actions]
+middle = "none"
+right = "none"
+
+[widget.output_volume.actions]
+middle = "none"
+
+[widget.workspaces]
+hide_when_empty = true
+
+    [widget.workspaces.actions]
+    middle = "none"

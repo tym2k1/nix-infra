@@ -1,0 +1,27 @@
+axiom = "F"
+
+iterations = 4
+
+angle = 25.0
+step = 12.0
+
+# Probability of continuing a branch after a few levels.
+branch_continuation_probability = 0.80
+
+[rules]
+
+[[rules.F]]
+weight = 0.40
+replacement = "FF+[+F-F]-[-F+F]"
+
+[[rules.F]]
+weight = 0.25
+replacement = "F[+F]F[-F]F"
+
+[[rules.F]]
+weight = 0.20
+replacement = "FF[+F][-F]F"
+
+[[rules.F]]
+weight = 0.15
+replacement = "F[+FF][-FF]"

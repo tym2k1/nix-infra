@@ -1,0 +1,11 @@
+[package]
+name = "wallpaper-gen"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+blake3 = "1.8"
+clap = { version = "4.6", features = ["derive"] }
+rand = "0.10.3"
+serde = { version = "1.0", features = ["derive"] }
+toml = "1.1"

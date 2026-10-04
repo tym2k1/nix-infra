@@ -5,6 +5,45 @@
     ];
   };
 perSystem = { pkgs, self', ... }: let
+  zkPreview = pkgs.writeShellApplication {
+    name = "zk-preview";
+
+    text = ''
+      if [[ "''${1:-}" == "--render" ]]; then
+        NOTE="$2"
+
+        ${pkgs.mdcat}/bin/mdcat "$NOTE"
+
+        if [[ -n "''${ZELLIJ_PANE_ID:-}" ]]; then
+          ${self'.packages.myZellij}/bin/zellij action scroll-to-bottom --pane-id "$ZELLIJ_PANE_ID"
+        fi
+
+        exit
+      fi
+
+      if [[ $# -ne 1 ]]; then
+        echo "usage: zk-preview NOTE" >&2
+        exit 2
+      fi
+
+      NOTE="$1"
+
+      old_stty=$(stty -g </dev/tty)
+      trap 'stty "$old_stty" </dev/tty' EXIT INT TERM
+
+      stty -echo </dev/tty
+
+      ${pkgs.watchexec}/bin/watchexec \
+        --quiet \
+        --watch "$(dirname "$NOTE")" \
+        --filter "$(basename "$NOTE")" \
+        --clear \
+        --wrap-process=none \
+        -- \
+        "$0" --render "$NOTE"
+    '';
+  };
+
   dailyNoteTemplate = pkgs.writeText "daily.md" ''
     # {{format-date (date extra.date) "full"}}
     #journal #daily
@@ -145,6 +184,9 @@ perSystem = { pkgs, self', ... }: let
 
     calendar = "zk list --tag daily --format json --no-pager | ${self'.packages.zkCalendarPicker}/bin/zk-calendar-picker | xargs --no-run-if-empty $EDITOR"
     cal = "zk calendar"
+
+    # Live preview formatted with kitty image protocol
+    preview = 'zk list --interactive --quiet --format {{absPath}} --no-pager | xargs ${zkPreview}/bin/zk-preview'
 
     # Default commands, rewritten here so autocomplete can be generated from aliases
     new = 'zk new "$@"'

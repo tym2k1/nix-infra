@@ -16,16 +16,10 @@ cursor {
 // Remember to uncomment the node by removing "/-"!
 output "HDMI-A-1" {
     scale 1
-    layout {
-        background-color "#808080"
-    }
 }
 
 output "Virtual-1" {
     scale 1
-    layout {
-        background-color "#808080"
-    }
 }
 
 output "eDP-1" {
@@ -57,9 +51,6 @@ output "eDP-1" {
     // If the position is unset or results in an overlap, the output is instead placed
     // automatically.
     position x=1280 y=0
-    layout {
-        background-color "#808080"
-    }
 }
 
 input {
@@ -107,8 +98,8 @@ input {
 
     // Focus windows and outputs automatically when moving the mouse into them.
     // Setting max-scroll-amount="0%" makes it work only on windows already fully on screen.
-    focus-follows-mouse
-    // focus-follows-mouse max-scroll-amount="0%"
+    // focus-follows-mouse
+    focus-follows-mouse max-scroll-amount="30%"
 }
 
 
@@ -173,13 +164,13 @@ layout {
         // - CSS-like notation: "rgb(255, 127, 0)", rgba(), hsl() and a few others.
 
         // Color of the ring on the active monitor.
-        active-color "#7fc8ff"
+        active-color "#dddddd"
 
         // Color of the ring on inactive monitors.
         //
         // The focus ring only draws around the active window, so the only place
         // where you can see its inactive-color is on other monitors.
-        inactive-color "#505050"
+        inactive-color "#b2b2b2"
 
         // You can also use gradients. They take precedence over solid colors.
         // Gradients are rendered the same as CSS linear-gradient(angle, from, to).
@@ -201,14 +192,13 @@ layout {
     border {
         // The settings are the same as for the focus ring.
         // If you enable the border, you probably want to disable the focus ring.
-        off
 
-        width 2
-        active-color "#ffc87f"
-        inactive-color "#505050"
+        width 0.5
+        active-color "transparent"
+        inactive-color "#777777"
 
         // Color of the border around windows that request your attention.
-        urgent-color "#9b0000"
+        urgent-color "#ff9999"
 
         // Gradients can use a few different interpolation color spaces.
         // For example, this is a pastel rainbow gradient via in="oklch longer hue".
@@ -221,7 +211,7 @@ layout {
     // You can enable drop shadows for windows.
     shadow {
         // Uncomment the next line to enable shadows.
-        on
+        off
 
         // By default, the shadow draws only around its window, and not behind it.
         // Uncomment this setting to make the shadow draw behind its window.
@@ -252,7 +242,7 @@ layout {
         offset x=0 y=5
 
         // You can also change the shadow color and opacity.
-        color "#0007"
+        color "#333333"
     }
 
     // Struts shrink the area occupied by windows, similarly to layer-shell panels.
@@ -266,6 +256,10 @@ layout {
         // top 64
         // bottom 64
     }
+    background-color "transparent"
+    insert-hint {
+         off
+     }
 }
 
 // Open the Firefox picture-in-picture player as floating by default.
@@ -274,6 +268,7 @@ window-rule {
     // - host Firefox (app-id is "firefox")
     // - Flatpak Firefox (app-id is "org.mozilla.firefox")
     match app-id=r#"firefox$"# title="^Picture-in-Picture$"
+    match app-id=r#"librewolf$"# title="^Picture-in-Picture$"
     open-floating true
 }
 
@@ -283,7 +278,21 @@ window-rule {
     clip-to-geometry true
 }
 
-layer-rule {
-  match namespace="^noctalia-overview*"
-  place-within-backdrop true
+// Place the regular wallpaper on the backdrop.
+// layer-rule {
+//   match namespace="^noctalia-wallpaper"
+//   place-within-backdrop true
+// }
+
+overview {
+  workspace-shadow {
+    off
+  }
+  backdrop-color "#000000"
 }
+
+// Set transparent workspace background color so the backdrop is visible at all times.
+// layout {
+//   background-color "transparent"
+// }
+//

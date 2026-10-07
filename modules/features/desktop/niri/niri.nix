@@ -56,6 +56,10 @@
         Mod+M repeat=false {
           spawn-sh "${pkgs.wl-mirror}/bin/wl-mirror $(niri msg --json focused-output | ${pkgs.jq}/bin/jq -r .name)"
         }
+        Mod+S { spawn-sh "${lib.getExe self'.packages.myNoctalia} msg panel-toggle launcher"; }
+        Mod+L { spawn-sh "${lib.getExe self'.packages.myNoctalia} msg session lock"; }
+        Mod+V { spawn-sh "${lib.getExe self'.packages.myNoctalia} msg panel-toggle clipboard"; }
+        Mod+Escape { spawn-sh "${lib.getExe self'.packages.myNoctalia} msg panel-toggle control-center "; }
 
         ${builtins.readFile ./binds.kdl}
       }

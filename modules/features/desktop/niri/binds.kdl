@@ -236,9 +236,9 @@ Mod+W       { switch-focus-between-floating-and-tiling; }
 // Mod+Space       { switch-layout "next"; }
 // Mod+Shift+Space { switch-layout "prev"; }
 
-Print { screenshot; }
-Ctrl+Print { screenshot-screen; }
-Alt+Print { screenshot-window; }
+// Print { screenshot; }
+// Ctrl+Print { screenshot-screen; }
+// Alt+Print { screenshot-window; }
 
 // Applications such as remote-desktop clients and software KVM switches may
 // request that niri stops processing the keyboard shortcuts defined here
@@ -248,7 +248,7 @@ Alt+Print { screenshot-window; }
 //
 // The allow-inhibiting=false property can be applied to other binds as well,
 // which ensures niri always processes them, even when an inhibitor is active.
-Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+// Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
 
 // The quit action will show a confirmation dialog to avoid accidental exits.
 // Mod+Shift+E { quit; }

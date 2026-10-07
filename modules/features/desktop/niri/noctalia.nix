@@ -6,11 +6,11 @@
   };
   perSystem = { pkgs, lib, ... }:
     let
-      wallpaperDirectory = "/home/user/Pictures/Wallpapers";
+      # wallpaperDirectory = "/home/user/Pictures/Wallpapers";
       config = pkgs.writeText "noctalia-config.toml" (
-        lib.replaceStrings
-          [ "@wallpaper-directory@" ]
-          [ wallpaperDirectory ]
+        # lib.replaceStrings
+        #   [ "@wallpaper-directory@" ]
+        #   [ wallpaperDirectory ]
           (builtins.readFile ./noctalia-config.toml)
       );
     in

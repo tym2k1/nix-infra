@@ -2,7 +2,9 @@
 enable_sounds = false
 
 [bar.default]
+capsule_fill = "surface"
 center = [ "clock", "date" ]
+concave_edge_corners = false
 end = [
     "notifications",
     "network",
@@ -14,8 +16,11 @@ end = [
     "control-center"
 ]
 margin_ends = 0
+radius = 0
+scale = 0.80000000447034836
+shadow = false
 start = [ "workspaces" ]
-thickness = 25
+thickness = 20
 
     [bar.default.dead_zone.actions]
     right = "none"
@@ -39,6 +44,9 @@ sidebar_section = "none"
     [[control_center.shortcuts]]
     type = "caffeine"
 
+    [[control_center.shortcuts]]
+    type = "nightlight"
+
 [desktop_widgets]
 enabled = false
 schema_version = 2
@@ -50,6 +58,9 @@ widget_order = []
     visible = true
 
     [desktop_widgets.widget]
+
+[dock]
+shadow = false
 
 [idle]
 behavior_order = [ "lock", "screen-off", "lock-and-suspend" ]
@@ -70,10 +81,12 @@ behavior_order = [ "lock", "screen-off", "lock-and-suspend" ]
     timeout = 660.0
 
 [lockscreen]
+blur_intensity = 0.99999997764825821
 blurred_desktop = true
 edge_smoothness = 0.0
 fingerprint = false
-transition = [ "disc" ]
+tint_intensity = 0.99999997764825821
+transition = [ "zoom" ]
 transition_duration = 500
 
 [lockscreen_widgets]
@@ -231,6 +244,7 @@ auto_update = "all"
 [shell]
 niri_overview_type_to_launch_enabled = true
 password_style = "random"
+popup_shadows = false
 time_format = "{:%H:%M:%S}"
 
     [shell.launcher]
@@ -240,16 +254,20 @@ time_format = "{:%H:%M:%S}"
     fetch_exchange_rates = false
 
     [shell.panel]
-    clipboard_placement = "attached"
-    launcher_placement = "attached"
+    clipboard_position = "auto"
+    control_center_placement = "floating"
+    launcher_position = "top_center"
     open_near_click_clipboard = true
     open_near_click_control_center = true
     open_near_click_launcher = true
-    open_near_click_wallpaper = true
+    shadow = false
 
     [shell.screen_corners]
     enabled = true
-    size = 25
+    size = 1
+
+    [shell.screenshot]
+    annotate = true
 
     [shell.session]
     grid = false
@@ -257,65 +275,25 @@ time_format = "{:%H:%M:%S}"
     show_shortcuts = false
 
     [shell.shadow]
+    alpha = 0.99999997764825821
     direction = "down_right"
 
 [system.monitor]
 enabled = false
 
 [theme]
-community_palette = "Sway Classic"
+builtin = "Noctalia"
+community_palette = "Inabakumori"
 mode = "dark"
-pure_black_dark = false
-source = "wallpaper"
-wallpaper_scheme = "m3-rainbow"
+pure_black_dark = true
+source = "community"
 
     [theme.templates]
     builtin_ids = [ "gtk3", "gtk4", "niri", "qt" ]
     enable_community_templates = false
 
 [wallpaper]
-directory = "@wallpaper-directory@"
-edge_smoothness = 0.0
-transition = [ "stripes" ]
-transition_duration = 500
-transition_on_startup = true
-
-    [wallpaper.automation]
-    enabled = true
-    interval_seconds = 300
-
-    [wallpaper.default]
-    path = "/home/tym2k1/Pictures/Wallpapers/johan_barthold_jongkind1.jpg"
-
-    [wallpaper.last]
-    path = "/home/tym2k1/Pictures/Wallpapers/johan_barthold_jongkind1.jpg"
-
-    [wallpaper.monitors.eDP-1]
-    path = "/home/tym2k1/Pictures/Wallpapers/johan_barthold_jongkind1.jpg"
-
-    [[wallpaper.favorite]]
-    path = "/home/tym2k1/Pictures/Wallpapers/jean_frederic_bazille1.jpg"
-
-    [[wallpaper.favorite]]
-    path = "/home/tym2k1/Pictures/Wallpapers/jacob_van_ruisadel1.jpg"
-
-    [[wallpaper.favorite]]
-    path = "/home/tym2k1/Pictures/Wallpapers/johan_barthold_jongkind1.jpg"
-
-    [[wallpaper.favorite]]
-    path = "/home/tym2k1/Pictures/Wallpapers/simon_denis3.jpg"
-
-    [[wallpaper.favorite]]
-    path = "/home/tym2k1/Pictures/Wallpapers/joseph_mallord_william_turner1.jpg"
-
-    [[wallpaper.favorite]]
-    path = "/home/tym2k1/Pictures/Wallpapers/simon_denis1.jpg"
-
-    [[wallpaper.favorite]]
-    path = "/home/tym2k1/Pictures/Wallpapers/simon_denis2.jpg"
-
-    [[wallpaper.favorite]]
-    path = "/home/tym2k1/Pictures/Wallpapers/francesco_guardi1.jpg"
+enabled = false
 
 [weather]
 enabled = false
@@ -363,7 +341,9 @@ right = "none"
 middle = "none"
 
 [widget.workspaces]
+active_pill_size = 2.0
 hide_when_empty = true
+show_tooltip = false
 
     [widget.workspaces.actions]
     middle = "none"

@@ -36,8 +36,6 @@ in {
         ripgrep
         ripgrep-all
         fd
-        fzf
-        sage
       ];
 
       text = ''exec ${self'.packages.myFish}/bin/fish -i'';

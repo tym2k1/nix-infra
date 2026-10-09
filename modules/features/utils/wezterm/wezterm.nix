@@ -14,6 +14,8 @@
          myWezterm = pkgs.symlinkJoin {
            name = "wezterm";
 
+           meta.mainProgram = "wezterm";
+
            paths = [ pkgs.wezterm ];
 
            buildInputs = [ pkgs.makeWrapper ];

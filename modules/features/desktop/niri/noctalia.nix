@@ -18,6 +18,8 @@
       packages.myNoctalia = pkgs.symlinkJoin {
         name = "noctalia";
 
+        meta.mainProgram = "noctalia";
+
         paths = [ pkgs.noctalia ];
 
         nativeBuildInputs = [ pkgs.makeWrapper ];

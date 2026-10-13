@@ -18,6 +18,15 @@
           lockFile = ./src/Cargo.lock;
         };
 
+        nativeBuildInputs = [ pkgs.makeWrapper ];
+
+        postInstall = ''
+          wrapProgram $out/bin/zk-calendar-picker \
+            --run 'export ZK_NOTEBOOK_DIR="$HOME/Notes"' \
+            --set ZK_NOTEBOOK_EVENTS_DIR_NAME events
+        '';
+
+
         meta = {
           description = "Interactive calendar picker for zk daily notes";
           mainProgram = "zk-calendar-picker";

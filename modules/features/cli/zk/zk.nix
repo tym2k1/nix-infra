@@ -173,6 +173,7 @@ perSystem = { pkgs, self', ... }: let
         cat ${helixLSPConfig} > $ZK_NOTEBOOK_DIR/.helix/languages.toml &&
         cat ${helixConfig} > $ZK_NOTEBOOK_DIR/.helix/config.toml &&
         mkdir -p $ZK_NOTEBOOK_DIR/journal/daily
+        mkdir -p $ZK_NOTEBOOK_DIR/events
         mkdir -p $ZK_NOTEBOOK_DIR/todo
       """
 

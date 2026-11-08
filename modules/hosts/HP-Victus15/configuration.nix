@@ -37,7 +37,6 @@
     boot.loader.efi.canTouchEfiVariables = true;
 
     # Boot eye-candy
-    boot.initrd.systemd.enable = true;
     boot.loader.systemd-boot.consoleMode = "max";
     boot = {
         plymouth = {
